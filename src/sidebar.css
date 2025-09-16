@@ -1,0 +1,59 @@
+/* src/sidebar.css */
+body, input, button { font-family: 'Segoe UI', Arial, sans-serif; }
+
+#glossary-list { padding-bottom: 40px; }
+.glossary-item {
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background: #fafafa;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.glossary-item:hover { background: #f0faff; }
+.glossary-ts { font-size: 12px; color: #0078d4; }
+.glossary-term { margin-top:4px; font-size:15px; font-weight:600; }
+.glossary-meaning { margin-top:6px; font-size:13px; color:#222; line-height:1.4; }
+.glossary-context { margin-top:4px; font-size:12px; color:#666; font-style:italic; }
+.glossary-item.highlight { box-shadow: 0 0 0 2px rgba(0,120,212,0.3); background: #f0fbff; }
+
+.btn, .btn-primary, .btn-icon {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+}
+.btn { background:#eee; color:#333; }
+.btn:hover { background:#ddd; }
+.btn-primary { background:#0078d4; color:#fff; font-weight:600; width:100%; margin-top:8px; }
+.btn-primary:disabled { background:#aaa; cursor:not-allowed; }
+.btn-icon { background:transparent; font-size:16px; }
+
+.input {
+  width:100%;
+  padding:8px;
+  border:1px solid #ccc;
+  border-radius:6px;
+  margin-bottom:8px;
+  font-size:13px;
+}
+
+/* spinner */
+.spinner {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid #0078d4;
+  border-right: 6px solid #ff4081;
+  border-bottom: 6px solid #ff9800;
+  border-left: 6px solid #4caf50;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

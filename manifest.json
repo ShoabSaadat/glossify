@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Timestamped Glossary (o3-mini)",
+  "version": "0.1",
+  "description": "Generate timestamped glossary/definitions for YouTube transcripts using o3-mini and display it as a right-side panel.",
+  "permissions": [
+    "storage",
+    "scripting",
+    "activeTab",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://api.openai.com/*",
+    "https://api.apify.com/*",
+    "https://www.youtube.com/*",
+    "https://*.youtube.com/*"
+  ],
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_title": "YT Glossary — Open popup to configure"
+  },
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/watch*"],
+      "js": ["src/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/sidebar.html", "src/sidebar.css"],
+      "matches": ["https://www.youtube.com/*"]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>YT Glossary — Settings</title>
+  <style>
+    body { font-family: Arial, sans-serif; width: 360px; padding: 12px; }
+    label { display:block; margin-top:8px; font-weight:600; }
+    input[type="text"], input[type="password"] { width:100%; padding:8px; margin-top:4px; box-sizing:border-box; }
+    button { margin-top:12px; padding:8px 10px; }
+    .note { color:#666; font-size:12px; margin-top:8px; }
+  </style>
+</head>
+<body>
+  <h3>YouTube Glossary — Settings</h3>
+  <label for="openaiKey">OpenAI API Key</label>
+  <input id="openaiKey" type="password" placeholder="sk-... (required)" />
+  <label for="apifyToken">Apify Token</label>
+  <input id="apifyToken" type="text" placeholder="SAMPLE_KEY or your token" />
+  <div class="note">OpenAI key is required. Apify token can be SAMPLE_KEY for testing but replace with a real token for production. Keys are stored locally in your browser extension storage.</div>
+  <button id="saveBtn">Save</button>
+  <button id="clearBtn" style="margin-left:8px;">Clear Keys</button>
+  <div id="status" style="margin-top:8px;"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
