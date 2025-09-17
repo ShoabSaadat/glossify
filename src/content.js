@@ -124,8 +124,6 @@
         right: 0;
         height: 100%;
         z-index: 99998;
-        width: 420px;
-        max-width: 42%;
       `;
 
       this.sidebarRootEl = host;
@@ -189,6 +187,9 @@
       
       // Setup onboarding functionality
       this.setupOnboarding();
+      
+      // Setup resize functionality
+      this.setupResizeHandle();
       
       console.log("[Content] Modern sidebar behavior wired");
     }
@@ -271,6 +272,82 @@
       if (overlay) {
         overlay.classList.remove('hidden');
       }
+    }
+    
+    setupResizeHandle() {
+      const resizeHandle = document.getElementById('resizeHandle');
+      const sidebar = document.querySelector('.glossary-sidebar');
+      
+      if (!resizeHandle || !sidebar) return;
+      
+      let isResizing = false;
+      let startX = 0;
+      let startWidth = 0;
+      
+      const startResize = (e) => {
+        isResizing = true;
+        startX = e.clientX;
+        startWidth = parseInt(document.defaultView.getComputedStyle(sidebar).width, 10);
+        
+        sidebar.classList.add('resizing');
+        document.body.style.cursor = 'ew-resize';
+        document.body.style.userSelect = 'none';
+        
+        document.addEventListener('mousemove', doResize);
+        document.addEventListener('mouseup', stopResize);
+        
+        e.preventDefault();
+      };
+      
+      const doResize = (e) => {
+        if (!isResizing) return;
+        
+        const deltaX = startX - e.clientX;
+        const newWidth = startWidth + deltaX;
+        
+        // Apply constraints
+        const minWidth = 300;
+        const maxWidth = Math.min(window.innerWidth * 0.8, 800);
+        const constrainedWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
+        
+        sidebar.style.width = `${constrainedWidth}px`;
+      };
+      
+      const stopResize = () => {
+        isResizing = false;
+        
+        sidebar.classList.remove('resizing');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        
+        document.removeEventListener('mousemove', doResize);
+        document.removeEventListener('mouseup', stopResize);
+        
+        // Save the new width to localStorage
+        const currentWidth = parseInt(document.defaultView.getComputedStyle(sidebar).width, 10);
+        chrome.storage.local.set({ sidebarWidth: currentWidth });
+      };
+      
+      // Load saved width
+      chrome.storage.local.get(['sidebarWidth'], (result) => {
+        if (result.sidebarWidth) {
+          const minWidth = 300;
+          const maxWidth = Math.min(window.innerWidth * 0.8, 800);
+          const savedWidth = Math.max(minWidth, Math.min(result.sidebarWidth, maxWidth));
+          sidebar.style.width = `${savedWidth}px`;
+        }
+      });
+      
+      resizeHandle.addEventListener('mousedown', startResize);
+      
+      // Handle window resize
+      window.addEventListener('resize', () => {
+        const currentWidth = parseInt(document.defaultView.getComputedStyle(sidebar).width, 10);
+        const maxWidth = Math.min(window.innerWidth * 0.8, 800);
+        if (currentWidth > maxWidth) {
+          sidebar.style.width = `${maxWidth}px`;
+        }
+      });
     }
     
     showEmptyState() {
