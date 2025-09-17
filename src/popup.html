@@ -1,26 +1,434 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>YT Glossary — Settings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glossify — Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; width: 360px; padding: 12px; }
-    label { display:block; margin-top:8px; font-weight:600; }
-    input[type="text"], input[type="password"] { width:100%; padding:8px; margin-top:4px; box-sizing:border-box; }
-    button { margin-top:12px; padding:8px 10px; }
-    .note { color:#666; font-size:12px; margin-top:8px; }
+    :root {
+      --primary-50: #f0fdf4;
+      --primary-100: #dcfce7;
+      --primary-500: #22c55e;
+      --primary-600: #16a34a;
+      --primary-700: #15803d;
+      --pistachio-50: #f7fee7;
+      --pistachio-100: #ecfccb;
+      --pistachio-200: #d9f99d;
+      --pistachio-300: #bef264;
+      --pistachio-400: #a3e635;
+      --pistachio-500: #84cc16;
+      --pistachio-600: #65a30d;
+      --pistachio-700: #4d7c0f;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-500: #6b7280;
+      --gray-700: #374151;
+      --gray-900: #111827;
+      --success-500: #10b981;
+      --error-500: #ef4444;
+      --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --text-xs: 0.75rem;
+      --text-sm: 0.875rem;
+      --text-base: 1rem;
+      --text-lg: 1.125rem;
+      --text-xl: 1.25rem;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: var(--font-family-primary);
+      background: linear-gradient(135deg, var(--pistachio-50) 0%, var(--gray-50) 100%);
+      margin: 0;
+      padding: 0;
+    }
+    
+    .popup-container {
+      width: 400px;
+      min-height: 500px;
+      background: linear-gradient(135deg, var(--pistachio-50) 0%, var(--gray-50) 100%);
+      border-radius: 0;
+      overflow: hidden;
+      font-family: var(--font-family-primary);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .popup-header {
+      background: linear-gradient(135deg, var(--pistachio-600) 0%, var(--pistachio-700) 100%);
+      color: white;
+      padding: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    
+    .brand-text h1 {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      margin: 0;
+    }
+    
+    .brand-text p {
+      font-size: var(--text-sm);
+      opacity: 0.8;
+      margin: 0;
+    }
+    
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: var(--text-sm);
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success-500);
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .popup-main {
+      padding: 32px 24px;
+      flex: 1;
+    }
+    
+    .form-group {
+      margin-bottom: 24px;
+    }
+    
+    .input-container {
+      position: relative;
+      margin-bottom: 8px;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 18px 48px 18px 16px;
+      border: 2px solid var(--gray-200);
+      border-radius: 12px;
+      font-size: var(--text-base);
+      background: white;
+      transition: all 0.3s ease;
+      outline: none;
+      font-family: var(--font-family-primary);
+    }
+    
+    .form-input:focus {
+      border-color: var(--pistachio-500);
+      box-shadow: 0 0 0 3px rgba(132, 204, 22, 0.1);
+    }
+    
+    .form-input:focus + .form-label,
+    .form-input:not(:placeholder-shown) + .form-label {
+      transform: translateY(-32px) scale(0.85);
+      color: var(--pistachio-600);
+      background: white;
+      padding: 0 8px;
+      border-radius: 4px;
+    }
+    
+    .form-label {
+      position: absolute;
+      left: 16px;
+      top: 18px;
+      color: var(--gray-500);
+      font-size: var(--text-base);
+      transition: all 0.3s ease;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transform-origin: left top;
+    }
+    
+    .label-icon {
+      font-size: 16px;
+    }
+    
+    .help-text {
+      font-size: var(--text-sm);
+      color: var(--gray-500);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+    
+    .help-text a {
+      color: var(--pistachio-600);
+      text-decoration: none;
+    }
+    
+    .help-text a:hover {
+      text-decoration: underline;
+    }
+    
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--pistachio-600) 0%, var(--pistachio-700) 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: var(--text-base);
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      font-family: var(--font-family-primary);
+      margin-bottom: 12px;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(132, 204, 22, 0.3);
+    }
+    
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+    
+    .btn-secondary {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      color: var(--gray-600);
+      border: 2px solid var(--gray-200);
+      border-radius: 10px;
+      font-size: var(--text-sm);
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      font-family: var(--font-family-primary);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--gray-50);
+      border-color: var(--gray-300);
+    }
+    
+    .btn-loading {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    
+    .btn-text {
+      transition: opacity 0.3s ease;
+    }
+    
+    .btn-loading .btn-text {
+      opacity: 0;
+    }
+    
+    .btn-loader {
+      position: absolute;
+      display: none;
+    }
+    
+    .btn-loading .btn-loader {
+      display: flex !important;
+    }
+    
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      right: 24px;
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+    
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    .toast-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .toast-success {
+      border-left: 4px solid var(--success-500);
+    }
+    
+    .toast-error {
+      border-left: 4px solid var(--error-500);
+    }
+    
+    .toast-icon {
+      font-size: 20px;
+    }
+    
+    .popup-footer {
+      padding: 16px 24px;
+      background: var(--gray-50);
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      border-top: 1px solid var(--gray-200);
+    }
+    
+    .footer-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--gray-600);
+      text-decoration: none;
+      font-size: var(--text-sm);
+      transition: color 0.3s ease;
+    }
+    
+    .footer-link:hover {
+      color: var(--pistachio-600);
+    }
+    
+    .hidden {
+      display: none !important;
+    }
   </style>
 </head>
 <body>
-  <h3>YouTube Glossary — Settings</h3>
-  <label for="openaiKey">OpenAI API Key</label>
-  <input id="openaiKey" type="password" placeholder="sk-... (required)" />
-  <label for="apifyToken">Apify Token</label>
-  <input id="apifyToken" type="text" placeholder="SAMPLE_KEY or your token" />
-  <div class="note">OpenAI key is required. Apify token can be SAMPLE_KEY for testing but replace with a real token for production. Keys are stored locally in your browser extension storage.</div>
-  <button id="saveBtn">Save</button>
-  <button id="clearBtn" style="margin-left:8px;">Clear Keys</button>
-  <div id="status" style="margin-top:8px;"></div>
+  <div class="popup-container">
+    <!-- Header with gradient and icon -->
+    <header class="popup-header">
+      <div class="brand">
+        <div class="brand-icon">
+          🧠
+        </div>
+        <div class="brand-text">
+          <h1>Glossify</h1>
+          <p>AI-Powered Learning</p>
+        </div>
+      </div>
+      <div class="status-indicator">
+        <div class="status-dot"></div>
+        <span>Ready</span>
+      </div>
+    </header>
+
+    <!-- Modern form with floating labels -->
+    <main class="popup-main">
+      <div class="form-group">
+        <div class="input-container">
+          <input type="password" id="openaiKey" class="form-input" placeholder="" autocomplete="off">
+          <label for="openaiKey" class="form-label">
+            <span class="label-icon">🔑</span>
+            OpenAI API Key
+          </label>
+        </div>
+        <div class="help-text">
+          Get your key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">OpenAI Platform</a>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="input-container">
+          <input type="password" id="apifyToken" class="form-input" placeholder="" autocomplete="off">
+          <label for="apifyToken" class="form-label">
+            <span class="label-icon">☁️</span>
+            Apify Token
+          </label>
+        </div>
+        <div class="help-text">
+          Optional: Use "SAMPLE_KEY" for testing or get your token from <a href="https://console.apify.com/account/integrations" target="_blank" rel="noopener">Apify Console</a>
+        </div>
+      </div>
+
+      <button class="btn-primary" id="saveBtn">
+        <span class="btn-text">Save Configuration</span>
+        <div class="btn-loader hidden">
+          <div class="spinner"></div>
+        </div>
+      </button>
+
+      <button class="btn-secondary" id="clearBtn">
+        <span>🗑️ Clear All Keys</span>
+      </button>
+    </main>
+
+    <!-- Footer with quick actions -->
+    <footer class="popup-footer">
+      <a href="https://github.com/ShoabSaadat/yt-glossary-extension" class="footer-link" target="_blank" rel="noopener">
+        <span>📖</span>
+        Guide
+      </a>
+      <a href="https://github.com/ShoabSaadat/yt-glossary-extension" class="footer-link" target="_blank" rel="noopener">
+        <span>💬</span>
+        Support
+      </a>
+    </footer>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast hidden" id="toast">
+    <div class="toast-content">
+      <span class="toast-icon" id="toastIcon"></span>
+      <span class="toast-message" id="toastMessage"></span>
+    </div>
+  </div>
 
   <script src="popup.js"></script>
 </body>

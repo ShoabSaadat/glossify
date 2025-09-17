@@ -1,7 +1,7 @@
 // src/background.js
 // Service worker: handles network requests (Apify + OpenAI) and acts as a safe place to store API keys.
 
-const DEFAULT_APIFY_TOKEN = "APIFY API KEY HERE";
+const DEFAULT_APIFY_TOKEN = "";
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.get(["openaiKey", "apifyToken"], (items) => {

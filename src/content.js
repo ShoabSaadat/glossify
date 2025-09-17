@@ -1,243 +1,627 @@
 // src/content.js
-// Injects UI into YouTube watch pages: Open Glossify button and sidebar. Communicates with background.
+// Enhanced content script with modern UI and smooth interactions
+// Injects UI into YouTube watch pages: Modern Glossify FAB and sidebar with enhanced UX
 
 (async function(){
-  function waitForVideo() {
-    return new Promise((res) => {
-      const check = () => {
-        const v = document.querySelector("video");
-        if (v) res(v);
-        else setTimeout(check, 300);
-      };
-      check();
-    });
-  }
-
-  const video = await waitForVideo();
-  console.log("[Content] Video element found", video);
-
-  function injectProcessButton() {
-    if (document.getElementById("yt-glossary-button-container")) return;
-
-    const container = document.createElement("div");
-    container.id = "yt-glossary-button-container";
-    container.style.position = "absolute";
-    container.style.zIndex = "99999";
-    container.style.top = "12px";
-    container.style.right = "12px";
-    container.style.fontFamily = "Arial, sans-serif";
-
-    const btn = document.createElement("button");
-    btn.id = "yt-glossary-process-btn";
-    btn.innerText = "Open Glossify";
-    btn.style.padding = "10px 14px";
-    btn.style.borderRadius = "8px";
-    btn.style.border = "none";
-    btn.style.background = "#0078d4";
-    btn.style.color = "#fff";
-    btn.style.fontWeight = "600";
-    btn.style.boxShadow = "0 2px 6px rgba(0,0,0,0.2)";
-    btn.style.cursor = "pointer";
-
-    container.appendChild(btn);
-    const player = document.querySelector(".html5-video-player") || document.body;
-    player.style.position = player.style.position || "relative";
-    player.appendChild(container);
-
-    btn.addEventListener("click", injectSidebar);
-    console.log("[Content] Open Glossify button injected");
-  }
-
-  let sidebarRootEl = null;
-  function injectSidebar() {
-    if (sidebarRootEl) {
-      sidebarRootEl.style.transform = "translateX(0%)"; 
-      return;
+  // Enhanced UI class for modern interactions
+  class GlossifyUI {
+    constructor() {
+      this.sidebarRootEl = null;
+      this.syncTimer = null;
+      this.video = null;
+      this.lastUrl = location.href;
+      this.isAnalyzing = false;
+      
+      this.init();
     }
-    const host = document.createElement("div");
-    host.id = "yt-glossary-sidebar-host";
-    host.style.position = "fixed";
-    host.style.top = "0";
-    host.style.right = "0";
-    host.style.height = "100%";
-    host.style.zIndex = "99998";
-    host.style.width = "400px";
-    host.style.maxWidth = "42%";
-    host.style.boxShadow = "rgba(0,0,0,0.3) -4px 0 12px";
-    host.style.background = "white";
-    host.style.overflow = "auto";
-    host.style.transition = "transform 0.25s ease";
-    host.style.transform = "translateX(0%)";
-    host.style.borderLeft = "1px solid #ddd";
-
-    sidebarRootEl = host;
-    document.body.appendChild(host);
-
-    fetch(chrome.runtime.getURL("src/sidebar.html"))
-      .then(r => r.text())
-      .then(html => {
-        host.innerHTML = html;
-        const link = document.createElement("link");
-        link.rel = "stylesheet";
-        link.href = chrome.runtime.getURL("src/sidebar.css");
-        host.appendChild(link);
-        setupSidebarBehavior();
-        console.log("[Content] Sidebar injected");
-      })
-      .catch(err => {
-        host.innerHTML = `<div style="padding:16px">Failed to load sidebar: ${err}</div>`;
-        console.error("[Content] Sidebar failed to load:", err);
-      });
-  }
-
-  function setupSidebarBehavior() {
-    const toggle = document.getElementById("glossary-toggle-btn");
-    if (toggle) {
-      toggle.addEventListener("click", () => {
-        const host = document.getElementById("yt-glossary-sidebar-host");
-        if (!host) return;
-        const isHidden = host.style.transform === "translateX(100%)";
-        host.style.transform = isHidden ? "translateX(0%)" : "translateX(100%)";
+    
+    async init() {
+      this.video = await this.waitForVideo();
+      console.log("[Content] Video element found", this.video);
+      this.injectModernFAB();
+      this.setupUrlChangeDetection();
+    }
+    
+    waitForVideo() {
+      return new Promise((resolve) => {
+        const check = () => {
+          const v = document.querySelector("video");
+          if (v) resolve(v);
+          else setTimeout(check, 300);
+        };
+        check();
       });
     }
-    const clearBtn = document.getElementById("glossary-clear-btn");
-    if (clearBtn) {
-      clearBtn.addEventListener("click", () => {
-        const list = document.getElementById("glossary-list");
-        if (list) list.innerHTML = "";
-        setSidebarStatus("Idle", false);
-      });
-    }
-    const runBtn = document.getElementById("glossary-run-btn");
-    if (runBtn) {
-      runBtn.addEventListener("click", () => {
-        const list = document.getElementById("glossary-list");
-        if (list) list.innerHTML = ""; 
-        onProcessClicked();            
-      });
-    }
-    console.log("[Content] Sidebar behavior wired");
-  }
+    
+    injectModernFAB() {
+      if (document.getElementById("glossify-fab-container")) return;
 
-  async function onProcessClicked() {
-    injectSidebar();
-    const url = location.href;
-    console.log("[Content] Glossify run for URL:", url);
-
-    setSidebarStatus("Fetching transcript from YouTube…", true);
-
-    const runBtn = document.getElementById("glossary-run-btn");
-    if (runBtn) runBtn.disabled = true;
-
-    chrome.runtime.sendMessage({ type: "RUN_TRANSCRIPT_WORKFLOW", videoUrl: url }, (resp) => {
-      console.log("[Content] Background response:", resp);
-
-      if (!resp) {
-        setSidebarStatus("No response from background.", false);
-        if (runBtn) runBtn.disabled = false;
-        return;
-      }
-      if (!resp.success) {
-        setSidebarStatus("Error: " + (resp.error || "unknown"), false);
-        if (runBtn) runBtn.disabled = false;
-        return;
-      }
-      const glossary = resp.glossary || [];
-      console.log("[Content] Rendering glossary with", glossary.length, "items");
-      renderGlossary(glossary);
-      setSidebarStatus("Glossary ready! Click a timestamp to jump.", false);
-      if (runBtn) runBtn.disabled = false;
-    });
-  }
-
-  function setSidebarStatus(msg, loading=false) {
-    const el = document.getElementById("glossary-status");
-    if (el) el.textContent = msg;
-
-    const spinner = document.getElementById("glossary-spinner");
-    if (spinner) spinner.style.display = loading ? "block" : "none";
-
-    console.log("[Content] Sidebar status:", msg);
-  }
-
-  function renderGlossary(array) {
-    const list = document.getElementById("glossary-list");
-    if (!list) return;
-    list.innerHTML = "";
-    for (const item of array) {
-      const li = document.createElement("div");
-      li.className = "glossary-item";
-      const ts = item.timestamp || secondsToTimestamp(item.seconds || 0);
-      li.dataset.seconds = item.seconds || 0;
-      li.innerHTML = `
-        <div class="glossary-ts">[${ts}]</div>
-        <div class="glossary-term"><strong>${escapeHtml(item.term || "—")}</strong> <span class="glossary-tally">(${item.tally||1})</span></div>
-        <div class="glossary-meaning">${escapeHtml(item.meaning || "")}</div>
-        <div class="glossary-context">${escapeHtml(item.context_excerpt || "")}</div>
+      const container = document.createElement("div");
+      container.id = "glossify-fab-container";
+      container.className = "glossify-fab-container";
+      container.style.cssText = `
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        z-index: 9999;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       `;
-      li.addEventListener("click", () => {
-        const s = Number(li.dataset.seconds || 0);
-        if (!isNaN(s) && video) {
-          video.currentTime = Math.max(0, s - 0.2);
-          video.play();
+
+      const fab = document.createElement("button");
+      fab.id = "glossify-fab";
+      fab.className = "glossify-fab";
+      fab.style.cssText = `
+        background: linear-gradient(135deg, #65a30d 0%, #4d7c0f 100%);
+        border: none;
+        border-radius: 16px;
+        padding: 12px 20px;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        font-family: inherit;
+        box-shadow: 0 8px 16px rgba(132, 204, 22, 0.3), 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        position: relative;
+        overflow: hidden;
+      `;
+
+      fab.innerHTML = `
+        <div class="fab-content" style="display: flex; align-items: center; gap: 8px; z-index: 1; position: relative;">
+          <span style="font-size: 16px;">🧠</span>
+          <span>Glossify</span>
+        </div>
+        <div class="fab-ripple" style="position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.3); transform: translate(-50%, -50%); transition: width 0.6s, height 0.6s;"></div>
+      `;
+
+      // Add hover effects
+      fab.addEventListener('mouseenter', () => {
+        fab.style.transform = 'translateY(-4px) scale(1.05)';
+        fab.style.boxShadow = '0 12px 24px rgba(132, 204, 22, 0.4), 0 4px 8px rgba(0, 0, 0, 0.15)';
+      });
+
+      fab.addEventListener('mouseleave', () => {
+        fab.style.transform = 'translateY(0) scale(1)';
+        fab.style.boxShadow = '0 8px 16px rgba(132, 204, 22, 0.3), 0 2px 4px rgba(0, 0, 0, 0.1)';
+      });
+
+      // Add ripple effect
+      fab.addEventListener('click', (e) => {
+        const ripple = fab.querySelector('.fab-ripple');
+        ripple.style.width = '100px';
+        ripple.style.height = '100px';
+        setTimeout(() => {
+          ripple.style.width = '0';
+          ripple.style.height = '0';
+        }, 600);
+        
+        this.injectModernSidebar();
+      });
+
+      container.appendChild(fab);
+      
+      const player = document.querySelector(".html5-video-player") || document.body;
+      player.style.position = player.style.position || "relative";
+      player.appendChild(container);
+
+      console.log("[Content] Modern Glossify FAB injected");
+    }
+    
+    injectModernSidebar() {
+      if (this.sidebarRootEl) {
+        this.sidebarRootEl.classList.add('open');
+        return;
+      }
+      
+      const host = document.createElement("div");
+      host.id = "yt-glossary-sidebar-host";
+      host.style.cssText = `
+        position: fixed;
+        top: 0;
+        right: 0;
+        height: 100%;
+        z-index: 99998;
+        width: 420px;
+        max-width: 42%;
+      `;
+
+      this.sidebarRootEl = host;
+      document.body.appendChild(host);
+
+      fetch(chrome.runtime.getURL("src/sidebar.html"))
+        .then(r => r.text())
+        .then(html => {
+          host.innerHTML = html;
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = chrome.runtime.getURL("src/sidebar.css");
+          host.appendChild(link);
+          
+          // Add the open class to trigger animation
+          setTimeout(() => {
+            host.querySelector('.glossary-sidebar').classList.add('open');
+          }, 100);
+          
+          this.setupSidebarBehavior();
+          this.showEmptyState();
+          console.log("[Content] Modern sidebar injected");
+        })
+        .catch(err => {
+          host.innerHTML = `<div style="padding:16px; color: red;">Failed to load sidebar: ${err}</div>`;
+          console.error("[Content] Sidebar failed to load:", err);
+        });
+    }
+    
+    setupSidebarBehavior() {
+      const toggle = document.getElementById("glossary-toggle-btn");
+      if (toggle) {
+        toggle.addEventListener("click", () => {
+          const sidebar = document.querySelector('.glossary-sidebar');
+          if (sidebar) {
+            sidebar.classList.toggle('open');
+          }
+        });
+      }
+      
+      const clearBtn = document.getElementById("glossary-clear-btn");
+      if (clearBtn) {
+        clearBtn.addEventListener("click", () => {
+          this.clearGlossary();
+        });
+      }
+      
+      const runBtn = document.getElementById("glossary-run-btn");
+      if (runBtn) {
+        runBtn.addEventListener("click", () => {
+          this.onAnalyzeClicked();
+        });
+      }
+      
+      const searchInput = document.getElementById("glossary-search");
+      if (searchInput) {
+        searchInput.addEventListener("input", (e) => {
+          this.filterTerms(e.target.value);
+        });
+      }
+      
+      // Setup onboarding functionality
+      this.setupOnboarding();
+      
+      console.log("[Content] Modern sidebar behavior wired");
+    }
+    
+    setupOnboarding() {
+      const overlay = document.getElementById('onboardingOverlay');
+      const skipBtn = document.getElementById('skipOnboarding');
+      const prevBtn = document.getElementById('prevSlide');
+      const nextBtn = document.getElementById('nextSlide');
+      const dots = document.querySelectorAll('.dot');
+      const slides = document.querySelectorAll('.slide');
+      
+      let currentSlide = 0;
+      const totalSlides = slides.length;
+      
+      const updateSlide = (index) => {
+        // Hide all slides
+        slides.forEach(slide => slide.classList.remove('active'));
+        dots.forEach(dot => dot.classList.remove('active'));
+        
+        // Show current slide
+        slides[index].classList.add('active');
+        dots[index].classList.add('active');
+        
+        // Update navigation
+        prevBtn.disabled = index === 0;
+        if (index === totalSlides - 1) {
+          nextBtn.textContent = 'Get Started!';
+        } else {
+          nextBtn.textContent = 'Next';
+        }
+        
+        currentSlide = index;
+      };
+      
+      const closeOnboarding = () => {
+        if (overlay) {
+          overlay.classList.add('hidden');
+        }
+        // Store that user has seen onboarding
+        chrome.storage.local.set({ hasSeenOnboarding: true });
+      };
+      
+      // Event listeners
+      if (skipBtn) {
+        skipBtn.addEventListener('click', closeOnboarding);
+      }
+      
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+          if (currentSlide > 0) {
+            updateSlide(currentSlide - 1);
+          }
+        });
+      }
+      
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+          if (currentSlide < totalSlides - 1) {
+            updateSlide(currentSlide + 1);
+          } else {
+            closeOnboarding();
+          }
+        });
+      }
+      
+      // Dot navigation
+      dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+          updateSlide(index);
+        });
+      });
+      
+      // Initialize first slide
+      updateSlide(0);
+    }
+    
+    showOnboarding() {
+      const overlay = document.getElementById('onboardingOverlay');
+      if (overlay) {
+        overlay.classList.remove('hidden');
+      }
+    }
+    
+    showEmptyState() {
+      const content = document.getElementById("glossaryContent");
+      if (!content) return;
+      
+      const emptyState = document.getElementById("emptyState");
+      const loadingState = document.getElementById("loadingState");
+      const glossaryList = document.getElementById("glossary-list");
+      
+      if (emptyState) emptyState.classList.remove("hidden");
+      if (loadingState) loadingState.classList.add("hidden");
+      if (glossaryList) glossaryList.classList.add("hidden");
+    }
+    
+    showLoadingState() {
+      const content = document.getElementById("glossaryContent");
+      if (!content) return;
+      
+      const emptyState = document.getElementById("emptyState");
+      const loadingState = document.getElementById("loadingState");
+      const glossaryList = document.getElementById("glossary-list");
+      
+      if (emptyState) emptyState.classList.add("hidden");
+      if (loadingState) loadingState.classList.remove("hidden");
+      if (glossaryList) glossaryList.classList.add("hidden");
+      
+      this.startLoadingProgress();
+    }
+    
+    startLoadingProgress() {
+      const progressSteps = [
+        'Fetching transcript from YouTube...',
+        'Processing with Smart Brain AI...',
+        'Extracting sophisticated terms...',
+        'Building interactive glossary...'
+      ];
+      
+      let currentStep = 0;
+      const progressText = document.getElementById("progressText");
+      const loadingText = document.getElementById("loadingText");
+      
+      if (progressText) progressText.textContent = progressSteps[0];
+      if (loadingText) loadingText.textContent = progressSteps[0];
+      
+      const interval = setInterval(() => {
+        currentStep++;
+        if (currentStep < progressSteps.length) {
+          if (progressText) progressText.textContent = progressSteps[currentStep];
+          if (loadingText) loadingText.textContent = progressSteps[currentStep];
+        } else {
+          clearInterval(interval);
+        }
+      }, 3000);
+    }
+    
+    showGlossaryList() {
+      const emptyState = document.getElementById("emptyState");
+      const loadingState = document.getElementById("loadingState");
+      const glossaryList = document.getElementById("glossary-list");
+      const sidebarFooter = document.getElementById("sidebarFooter");
+      
+      if (emptyState) emptyState.classList.add("hidden");
+      if (loadingState) loadingState.classList.add("hidden");
+      if (glossaryList) glossaryList.classList.remove("hidden");
+      if (sidebarFooter) sidebarFooter.classList.remove("hidden");
+    }
+    
+    clearGlossary() {
+      const glossaryList = document.getElementById("glossary-list");
+      if (glossaryList) glossaryList.innerHTML = "";
+      
+      this.setSidebarStatus("Ready to analyze", false);
+      this.showEmptyState();
+      
+      if (this.syncTimer) {
+        clearInterval(this.syncTimer);
+        this.syncTimer = null;
+      }
+    }
+    
+    async onAnalyzeClicked() {
+      if (this.isAnalyzing) return;
+      
+      this.injectModernSidebar();
+      const url = location.href;
+      console.log("[Content] Glossify analysis started for URL:", url);
+
+      this.isAnalyzing = true;
+      this.showLoadingState();
+      this.setSidebarStatus("Analyzing video transcript...", true);
+
+      const runBtn = document.getElementById("glossary-run-btn");
+      if (runBtn) runBtn.disabled = true;
+
+      chrome.runtime.sendMessage({ type: "RUN_TRANSCRIPT_WORKFLOW", videoUrl: url }, (resp) => {
+        this.isAnalyzing = false;
+        console.log("[Content] Background response:", resp);
+
+        if (!resp) {
+          this.setSidebarStatus("No response from background service.", false);
+          this.showEmptyState();
+          if (runBtn) runBtn.disabled = false;
+          return;
+        }
+        
+        if (!resp.success) {
+          this.setSidebarStatus("Error: " + (resp.error || "Unknown error occurred"), false);
+          this.showEmptyState();
+          if (runBtn) runBtn.disabled = false;
+          return;
+        }
+        
+        const glossary = resp.glossary || [];
+        console.log("[Content] Rendering modern glossary with", glossary.length, "items");
+        this.renderModernGlossary(glossary);
+        this.setSidebarStatus(`Glossary ready! Found ${glossary.length} terms.`, false);
+        if (runBtn) runBtn.disabled = false;
+      });
+    }
+    
+    setSidebarStatus(msg, loading = false) {
+      const statusEl = document.getElementById("glossary-status");
+      if (statusEl) statusEl.textContent = msg;
+
+      // Handle new progress container
+      const newSpinner = document.getElementById("progressContainer");
+      
+      if (newSpinner) {
+        if (loading) {
+          newSpinner.classList.remove("hidden");
+        } else {
+          newSpinner.classList.add("hidden");
+        }
+      }
+
+      console.log("[Content] Sidebar status:", msg);
+    }
+    
+    renderModernGlossary(array) {
+      const list = document.getElementById("glossary-list");
+      if (!list) return;
+      
+      list.innerHTML = "";
+      this.showGlossaryList();
+      
+      // Update stats
+      const termCount = document.getElementById("termCount");
+      if (termCount) termCount.textContent = array.length;
+      
+      const videoLength = document.getElementById("videoLength");
+      if (videoLength && this.video) {
+        const duration = this.video.duration || 0;
+        videoLength.textContent = this.secondsToTimestamp(duration);
+      }
+      
+      for (const [index, item] of array.entries()) {
+        const card = document.createElement("div");
+        card.className = "glossary-item";
+        card.style.animationDelay = `${index * 0.1}s`;
+        
+        const ts = item.timestamp || this.secondsToTimestamp(item.seconds || 0);
+        card.dataset.seconds = item.seconds || 0;
+        
+        card.innerHTML = `
+          <div class="glossary-ts" onclick="event.stopPropagation();" style="cursor: pointer;">
+            <span>▶</span> ${ts}
+          </div>
+          <div class="glossary-term">
+            <strong>${this.escapeHtml(item.term || "—")}</strong>
+            <span class="glossary-tally">×${item.tally || 1}</span>
+          </div>
+          <div class="glossary-meaning">${this.escapeHtml(item.meaning || "")}</div>
+          <div class="glossary-context">${this.escapeHtml(item.context_excerpt || "")}</div>
+        `;
+        
+        // Add click handlers
+        const timestamp = card.querySelector('.glossary-ts');
+        timestamp.addEventListener("click", (e) => {
+          e.stopPropagation();
+          this.seekToTime(Number(card.dataset.seconds || 0));
+        });
+        
+        card.addEventListener("click", () => {
+          this.seekToTime(Number(card.dataset.seconds || 0));
+        });
+        
+        list.appendChild(card);
+      }
+      
+      console.log("[Content] Modern glossary rendered:", array.length, "items");
+      this.startTimeSync();
+    }
+    
+    seekToTime(seconds) {
+      if (!this.video || isNaN(seconds)) return;
+      
+      this.video.currentTime = Math.max(0, seconds - 0.2);
+      this.video.play();
+      
+      // Visual feedback - highlight the clicked term
+      const items = document.querySelectorAll(".glossary-item");
+      items.forEach(item => {
+        item.classList.remove("highlight");
+      });
+      
+      const targetItem = document.querySelector(`[data-seconds="${seconds}"]`);
+      if (targetItem) {
+        targetItem.classList.add("highlight");
+        targetItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Remove highlight after 3 seconds to show it was clicked
+        setTimeout(() => {
+          // Only remove if this is still the manually clicked item
+          if (targetItem.classList.contains("highlight")) {
+            // Check if we should keep it highlighted due to video time sync
+            const currentTime = Math.floor(this.video.currentTime || 0);
+            const itemTime = Number(targetItem.dataset.seconds || 0);
+            if (Math.abs(currentTime - itemTime) > 5) {
+              targetItem.classList.remove("highlight");
+            }
+          }
+        }, 3000);
+      }
+    }
+    
+    startTimeSync() {
+      if (this.syncTimer) clearInterval(this.syncTimer);
+      
+      this.syncTimer = setInterval(() => {
+        if (!this.video) return;
+        
+        const currentTime = Math.floor(this.video.currentTime || 0);
+        this.highlightForSeconds(currentTime);
+      }, 250);
+    }
+    
+    highlightForSeconds(seconds) {
+      const items = document.querySelectorAll(".glossary-item");
+      if (!items || items.length === 0) return;
+      
+      let nearest = null;
+      let nearestDiff = Infinity;
+      
+      items.forEach(item => {
+        const itemSeconds = Number(item.dataset.seconds || 0);
+        const diff = Math.abs(itemSeconds - seconds);
+        
+        if (diff < nearestDiff) {
+          nearestDiff = diff;
+          nearest = item;
         }
       });
-      list.appendChild(li);
-    }
-    console.log("[Content] Glossary rendered:", array.length, "items");
-    startTimeSync();
-  }
-
-  let syncTimer = null;
-  function startTimeSync() {
-    if (syncTimer) clearInterval(syncTimer);
-    syncTimer = setInterval(() => {
-      const t = Math.floor(video.currentTime || 0);
-      highlightForSeconds(t);
-    }, 250);
-  }
-
-  function highlightForSeconds(seconds) {
-    const items = document.querySelectorAll(".glossary-item");
-    if (!items || items.length === 0) return;
-    let nearest = null;
-    let nearestDiff = Infinity;
-    items.forEach(it => {
-      const s = Number(it.dataset.seconds || 0);
-      const diff = Math.abs(s - seconds);
-      if (diff < nearestDiff) {
-        nearestDiff = diff; nearest = it;
+      
+      // Remove existing highlights
+      items.forEach(item => {
+        // Only remove highlight if it's not manually clicked (within last 3 seconds)
+        if (!item.dataset.manuallyClicked) {
+          item.classList.remove("highlight");
+        }
+      });
+      
+      // Add highlight to nearest term (within 5 second tolerance)
+      if (nearest && nearestDiff <= 5) {
+        nearest.classList.add("highlight");
       }
-      it.classList.remove("highlight");
-    });
-    if (nearest) {
-      nearest.classList.add("highlight");
+    }
+    
+    filterTerms(query) {
+      const cards = document.querySelectorAll('.glossary-item');
+      const searchClear = document.getElementById('searchClear');
+      
+      if (query.length > 0) {
+        if (searchClear) searchClear.classList.remove('hidden');
+      } else {
+        if (searchClear) searchClear.classList.add('hidden');
+      }
+      
+      cards.forEach(card => {
+        const term = card.querySelector('.glossary-term').textContent.toLowerCase();
+        const meaning = card.querySelector('.glossary-meaning').textContent.toLowerCase();
+        const matches = term.includes(query.toLowerCase()) || meaning.includes(query.toLowerCase());
+        
+        if (matches) {
+          card.style.display = 'block';
+          card.style.animation = 'fadeIn 0.3s ease';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+    
+    setupUrlChangeDetection() {
+      setInterval(() => {
+        if (location.href !== this.lastUrl) {
+          this.lastUrl = location.href;
+          this.clearGlossary();
+          
+          // Re-inject FAB if needed
+          if (!document.getElementById("glossify-fab-container")) {
+            setTimeout(() => this.injectModernFAB(), 1000);
+          }
+        }
+      }, 1000);
+    }
+    
+    secondsToTimestamp(sec) {
+      sec = Number(sec || 0);
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = Math.floor(sec % 60);
+      if (h > 0) return `${this.pad(h)}:${this.pad(m)}:${this.pad(s)}`;
+      return `${this.pad(m)}:${this.pad(s)}`;
+    }
+    
+    pad(n) {
+      return n.toString().padStart(2, '0');
+    }
+    
+    escapeHtml(s) {
+      if (!s) return "";
+      return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
   }
 
-  function secondsToTimestamp(sec) {
-    sec = Number(sec || 0);
-    const h = Math.floor(sec / 3600);
-    const m = Math.floor((sec % 3600) / 60);
-    const s = Math.floor(sec % 60);
-    if (h > 0) return `${pad(h)}:${pad(m)}:${pad(s)}`;
-    return `${pad(m)}:${pad(s)}`;
-  }
-  function pad(n){ return n.toString().padStart(2,'0'); }
-  function escapeHtml(s) {
-    if (!s) return "";
-    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  }
+  // Initialize the enhanced UI
+  const glossifyUI = new GlossifyUI();
 
-  let lastUrl = location.href;
-  setInterval(() => {
-    if (location.href !== lastUrl) {
-      lastUrl = location.href;
-      const list = document.getElementById("glossary-list");
-      if (list) list.innerHTML = "";
-      setSidebarStatus("Idle", false);
+  // Listen for messages from popup
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === "OPEN_SIDEBAR_WITH_ONBOARDING") {
+      glossifyUI.injectModernSidebar();
+      
+      // Check if user has seen onboarding
+      chrome.storage.local.get(['hasSeenOnboarding'], (result) => {
+        if (!result.hasSeenOnboarding) {
+          // Show onboarding after sidebar is loaded
+          setTimeout(() => {
+            glossifyUI.showOnboarding();
+          }, 500);
+        }
+      });
+      
+      sendResponse({ success: true });
     }
-  }, 1000);
+    return true;
+  });
 
-  injectProcessButton();
+  // Legacy compatibility functions for existing functionality
+  window.injectProcessButton = () => glossifyUI.injectModernFAB();
+  window.injectSidebar = () => glossifyUI.injectModernSidebar();
+  window.onProcessClicked = () => glossifyUI.onAnalyzeClicked();
+  
 })();

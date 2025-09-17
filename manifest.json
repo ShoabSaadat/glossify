@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Timestamped Glossary (o3-mini)",
-  "version": "0.1",
-  "description": "Generate timestamped glossary/definitions for YouTube transcripts using o3-mini and display it as a right-side panel.",
+  "name": "YouTube Timestamped Glossary (Smart Brain)",
+  "version": "1.0.0",
+  "description": "Transform your YouTube learning with AI-powered glossaries. Extract sophisticated terms with timestamps and definitions using our Smart Brain AI.",
   "permissions": [
     "storage",
     "scripting",
@@ -13,11 +13,13 @@
     "https://api.openai.com/*",
     "https://api.apify.com/*",
     "https://www.youtube.com/*",
-    "https://*.youtube.com/*"
+    "https://*.youtube.com/*",
+    "https://fonts.googleapis.com/*",
+    "https://fonts.gstatic.com/*"
   ],
   "action": {
     "default_popup": "src/popup.html",
-    "default_title": "YT Glossary — Open popup to configure"
+    "default_title": "Glossify — AI-Powered Learning Assistant"
   },
   "background": {
     "service_worker": "src/background.js"
@@ -31,8 +33,17 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["src/sidebar.html", "src/sidebar.css"],
+      "resources": [
+        "src/sidebar.html", 
+        "src/sidebar.css",
+        "src/utils.js"
+      ],
       "matches": ["https://www.youtube.com/*"]
     }
-  ]
+  ],
+  "icons": {
+    "16": "src/icons/icon16.png",
+    "48": "src/icons/icon48.png",
+    "128": "src/icons/icon128.png"
+  }
 }
