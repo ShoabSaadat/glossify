@@ -11,6 +11,42 @@
       this.video = null;
       this.lastUrl = location.href;
       this.isAnalyzing = false;
+      this.isAnalyzed = false; // Track if video has been analyzed
+      this.quotesTimer = null; // Timer for cycling quotes
+      
+      // Witty waiting quotes with emojis
+      this.waitingQuotes = [
+        "🍕 Pizza gets delivered faster than this, but it's less educational!",
+        "🎬 Meanwhile, somewhere in Hollywood, a movie is being made...",
+        "🐌 Even snails are wondering what's taking so long!",
+        "☕ Perfect time for a coffee break! ☕",
+        "🧠 Your brain is about to get a vocabulary upgrade!",
+        "🎯 Good things come to those who wait... and analyze!",
+        "🚀 Rome wasn't built in a day, but this glossary might be!",
+        "🎪 Patience is a virtue... also a waiting room magazine!",
+        "🎨 Michelangelo took 4 years for the Sistine Chapel, we'll be quicker!",
+        "🐢 Slow and steady wins the race... and learns new words!",
+        "🎵 This is the song that never ends... oh wait, it will!",
+        "🍿 Grab some popcorn, the AI show is in progress!",
+        "🎲 Rolling the dice of knowledge extraction...",
+        "🔍 Searching for words you didn't know you needed to know!",
+        "📚 Building your personal dictionary, one term at a time!",
+        "🎪 Step right up to the greatest vocabulary show on earth!",
+        "🧩 Putting together the puzzle of sophisticated terminology!",
+        "🎭 The drama of waiting... coming to a sidebar near you!",
+        "🎨 Painting a masterpiece of educational content!",
+        "🚂 All aboard the knowledge train! Next stop: Vocabulary Station!",
+        "🎪 Ladies and gentlemen, the amazing AI word extractor!",
+        "🍯 Sweet knowledge is being harvested by our AI bees!",
+        "🎯 Aiming for the bullseye of perfect definitions!",
+        "🎪 The greatest show on earth: Your Personal Glossary!",
+        "🧠 Neural networks are networking... please stand by!",
+        "🎨 Creating a Mona Lisa of terminology... with less mysterious smiles!",
+        "📖 Writing the next chapter of your learning journey!",
+        "🎵 Humming the tune of educational excellence!",
+        "🚀 Houston, we have... sophisticated vocabulary incoming!",
+        "🎭 Plot twist: You're about to learn something amazing!"
+      ];
       
       this.init();
     }
@@ -176,6 +212,8 @@
         runBtn.addEventListener("click", () => {
           this.onAnalyzeClicked();
         });
+        // Initialize button state
+        this.updateButtonState();
       }
       
       const searchInput = document.getElementById("glossary-search");
@@ -268,9 +306,13 @@
     }
     
     showOnboarding() {
+      console.log("[Content] showOnboarding called");
       const overlay = document.getElementById('onboardingOverlay');
       if (overlay) {
+        console.log("[Content] Onboarding overlay found, showing...");
         overlay.classList.remove('hidden');
+      } else {
+        console.log("[Content] Onboarding overlay not found!");
       }
     }
     
@@ -361,6 +403,9 @@
       if (emptyState) emptyState.classList.remove("hidden");
       if (loadingState) loadingState.classList.add("hidden");
       if (glossaryList) glossaryList.classList.add("hidden");
+      
+      // Stop quotes cycling when leaving loading state
+      this.stopQuotesCycling();
     }
     
     showLoadingState() {
@@ -376,14 +421,50 @@
       if (glossaryList) glossaryList.classList.add("hidden");
       
       this.startLoadingProgress();
+      this.startQuotesCycling();
+    }
+    
+    startQuotesCycling() {
+      // Show initial quote
+      this.showRandomQuote();
+      
+      // Cycle quotes every 4 seconds
+      this.quotesTimer = setInterval(() => {
+        this.showRandomQuote();
+      }, 4000);
+    }
+    
+    showRandomQuote() {
+      const quoteElement = document.getElementById("quoteText");
+      if (!quoteElement) return;
+      
+      const randomQuote = this.waitingQuotes[Math.floor(Math.random() * this.waitingQuotes.length)];
+      
+      // Fade out
+      quoteElement.style.opacity = '0';
+      quoteElement.style.transform = 'translateY(10px)';
+      
+      // Change text and fade in
+      setTimeout(() => {
+        quoteElement.textContent = randomQuote;
+        quoteElement.style.opacity = '1';
+        quoteElement.style.transform = 'translateY(0)';
+      }, 200);
+    }
+    
+    stopQuotesCycling() {
+      if (this.quotesTimer) {
+        clearInterval(this.quotesTimer);
+        this.quotesTimer = null;
+      }
     }
     
     startLoadingProgress() {
       const progressSteps = [
         'Fetching transcript from YouTube...',
         'Processing with Smart Brain AI...',
-        'Extracting sophisticated terms...',
-        'Building interactive glossary...'
+        'Extracting sophisticated vocabulary...',
+        'Building comprehensive glossary...'
       ];
       
       let currentStep = 0;
@@ -423,14 +504,43 @@
       this.setSidebarStatus("Ready to analyze", false);
       this.showEmptyState();
       
+      // Reset analyzed state and update button
+      this.isAnalyzed = false;
+      this.updateButtonState();
+      
       if (this.syncTimer) {
         clearInterval(this.syncTimer);
         this.syncTimer = null;
       }
     }
     
+    updateButtonState() {
+      const runBtn = document.getElementById("glossary-run-btn");
+      if (!runBtn) return;
+      
+      const buttonSpan = runBtn.querySelector('span:last-child');
+      if (this.isAnalyzed) {
+        if (buttonSpan) buttonSpan.textContent = 'Start Over';
+        runBtn.style.background = 'linear-gradient(135deg, #dc2626, #b91c1c)';
+        runBtn.style.boxShadow = '0 4px 15px rgba(220, 38, 38, 0.3)';
+      } else {
+        if (buttonSpan) buttonSpan.textContent = 'Glossify It!';
+        runBtn.style.background = 'linear-gradient(135deg, #84cc16, #65a30d)';
+        runBtn.style.boxShadow = '0 4px 15px rgba(132, 204, 22, 0.3)';
+      }
+    }
+    
     async onAnalyzeClicked() {
       if (this.isAnalyzing) return;
+      
+      // If already analyzed, clear and reset
+      if (this.isAnalyzed) {
+        this.clearGlossary();
+        this.isAnalyzed = false;
+        this.updateButtonState();
+        this.showEmptyState();
+        return;
+      }
       
       this.injectModernSidebar();
       const url = location.href;
@@ -438,10 +548,14 @@
 
       this.isAnalyzing = true;
       this.showLoadingState();
-      this.setSidebarStatus("Analyzing video transcript...", true);
+      this.setSidebarStatus("Glossifying video transcript...", true);
 
       const runBtn = document.getElementById("glossary-run-btn");
-      if (runBtn) runBtn.disabled = true;
+      if (runBtn) {
+        runBtn.disabled = true;
+        const buttonSpan = runBtn.querySelector('span:last-child');
+        if (buttonSpan) buttonSpan.textContent = 'Glossifying...';
+      }
 
       chrome.runtime.sendMessage({ type: "RUN_TRANSCRIPT_WORKFLOW", videoUrl: url }, (resp) => {
         this.isAnalyzing = false;
@@ -450,14 +564,20 @@
         if (!resp) {
           this.setSidebarStatus("No response from background service.", false);
           this.showEmptyState();
-          if (runBtn) runBtn.disabled = false;
+          if (runBtn) {
+            runBtn.disabled = false;
+            this.updateButtonState();
+          }
           return;
         }
         
         if (!resp.success) {
           this.setSidebarStatus("Error: " + (resp.error || "Unknown error occurred"), false);
           this.showEmptyState();
-          if (runBtn) runBtn.disabled = false;
+          if (runBtn) {
+            runBtn.disabled = false;
+            this.updateButtonState();
+          }
           return;
         }
         
@@ -465,6 +585,11 @@
         console.log("[Content] Rendering modern glossary with", glossary.length, "items");
         this.renderModernGlossary(glossary);
         this.setSidebarStatus(`Glossary ready! Found ${glossary.length} terms.`, false);
+        
+        // Mark as analyzed and update button state
+        this.isAnalyzed = true;
+        this.updateButtonState();
+        
         if (runBtn) runBtn.disabled = false;
       });
     }
@@ -493,6 +618,9 @@
       
       list.innerHTML = "";
       this.showGlossaryList();
+      
+      // Stop quotes cycling when showing results
+      this.stopQuotesCycling();
       
       // Update stats
       const termCount = document.getElementById("termCount");
@@ -679,15 +807,20 @@
   // Listen for messages from popup
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === "OPEN_SIDEBAR_WITH_ONBOARDING") {
+      console.log("[Content] Received OPEN_SIDEBAR_WITH_ONBOARDING message");
       glossifyUI.injectModernSidebar();
       
       // Check if user has seen onboarding
       chrome.storage.local.get(['hasSeenOnboarding'], (result) => {
+        console.log("[Content] Onboarding storage check:", result);
         if (!result.hasSeenOnboarding) {
+          console.log("[Content] User hasn't seen onboarding, will show after delay");
           // Show onboarding after sidebar is loaded
           setTimeout(() => {
             glossifyUI.showOnboarding();
           }, 500);
+        } else {
+          console.log("[Content] User has already seen onboarding, skipping");
         }
       });
       
@@ -700,5 +833,17 @@
   window.injectProcessButton = () => glossifyUI.injectModernFAB();
   window.injectSidebar = () => glossifyUI.injectModernSidebar();
   window.onProcessClicked = () => glossifyUI.onAnalyzeClicked();
+  
+  // Debug function to reset onboarding for testing
+  window.resetOnboarding = () => {
+    chrome.storage.local.remove(['hasSeenOnboarding'], () => {
+      console.log("[Content] Onboarding flag reset! Next sidebar open will show onboarding.");
+    });
+  };
+  
+  // Debug function to show onboarding manually
+  window.showOnboarding = () => {
+    glossifyUI.showOnboarding();
+  };
   
 })();

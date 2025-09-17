@@ -95,23 +95,46 @@ async function fetchTranscriptFromApify(videoUrl, apifyToken) {
 
 function buildPrompt(transcript) {
   return `
-You are a precise literary-and-philosophy glossary assistant.
+You are an expert glossary assistant specializing in educational content. Your task is to extract ALL sophisticated terms that would benefit learners from this video transcript.
 
-Input: a transcript (from a YouTube video) that includes spoken text and timestamps. Extract sophisticated words/phrases and produce a JSON array of entries.
+IMPORTANT: Extract 20-50 terms minimum. Be comprehensive and generous in your selections.
 
-Each entry must have:
+INCLUDE these types of terms:
+1. Academic/scholarly vocabulary (discourse, paradigm, methodology, synthesis)
+2. Technical terms from any field (cryptograms, supernova, mesmerism)
+3. Philosophical concepts (neoplatonism, transcendentalism, idealism)
+4. Literary terms (Byronic hero, Gothic, allegory, symbolism)
+5. Historical terms (milieu, epoch, antiquity)
+6. Scientific concepts (even basic ones that add value)
+7. Uncommon adjectives/adverbs (prodigiously, enigmatic, esoteric)
+8. Cultural references (Sage of Concord, Corpus Hermeticum)
+9. Specialized fields (metaphysics, mysticism, hermeticism)
+10. ANY word a general audience might not immediately understand
+
+EXAMPLES of what to extract:
+- "milieu" → environment/setting
+- "prodigiously" → extremely/abundantly  
+- "discourse" → formal discussion
+- "paradigm" → model/framework
+- "synthesis" → combination of ideas
+- "empirical" → based on observation
+- "esoteric" → hidden/specialized knowledge
+- "enigmatic" → mysterious/puzzling
+
+DO NOT skip common academic words - include them if they add educational value.
+
+Return ONLY valid JSON array. Each entry:
 {
-  "timestamp": "HH:MM:SS" or "MM:SS",
-  "seconds": <integer seconds>,
-  "term": "<word or phrase>",
-  "meaning": "<plain-English explanation (1–2 sentences)>",
-  "context_excerpt": "<short excerpt (~20 words)>",
-  "tally": <integer count of appearances in this transcript>
+  "timestamp": "MM:SS or HH:MM:SS",
+  "seconds": <integer>,
+  "term": "<exact word/phrase>",
+  "meaning": "<clear 1-2 sentence explanation>",
+  "context_excerpt": "<~20 words around the term>",
+  "tally": <count in transcript>
 }
 
-- Return strictly valid JSON only.
-- Ensure seconds matches timestamp.
-- Extract literary, philosophical, or heavy terms.
+Be thorough - aim for 20-50 terms. Include everything that would help a learner understand sophisticated content better.
+
 Transcript:
 -----
 ${transcript}
@@ -120,11 +143,17 @@ ${transcript}
 
 async function callOpenAIResponses(openaiKey, prompt) {
   console.log("[Background] Calling OpenAI with prompt length:", prompt.length);
-  const url = "https://api.openai.com/v1/responses";
+  const url = "https://api.openai.com/v1/chat/completions";
   const body = {
-    model: "o3-mini",
-    reasoning: { effort: "medium" },
-    input: prompt
+    model: "gpt-4o-mini",
+    messages: [
+      {
+        role: "user",
+        content: prompt
+      }
+    ],
+    temperature: 0.3,
+    max_tokens: 4000
   };
 
   const resp = await fetch(url, {
@@ -145,8 +174,19 @@ async function callOpenAIResponses(openaiKey, prompt) {
 
 function extractJsonFromOpenAIResponse(aiResp) {
   try {
-    const textBlocks = [];
-    if (aiResp?.output && Array.isArray(aiResp.output)) {
+    let content = "";
+    
+    // Handle standard OpenAI chat completions response
+    if (aiResp?.choices && Array.isArray(aiResp.choices)) {
+      const choice = aiResp.choices[0];
+      if (choice?.message?.content) {
+        content = choice.message.content;
+      }
+    }
+    
+    // Fallback for other response formats
+    if (!content && aiResp?.output && Array.isArray(aiResp.output)) {
+      const textBlocks = [];
       for (const block of aiResp.output) {
         if (block?.content && Array.isArray(block.content)) {
           for (const c of block.content) {
@@ -157,15 +197,16 @@ function extractJsonFromOpenAIResponse(aiResp) {
           textBlocks.push(block.text);
         }
       }
+      content = textBlocks.join("\n").trim();
     }
-    if (textBlocks.length === 0 && aiResp?.response) textBlocks.push(String(aiResp.response));
-    if (textBlocks.length === 0 && aiResp?.output_text) textBlocks.push(String(aiResp.output_text));
+    
+    if (!content && aiResp?.response) content = String(aiResp.response);
+    if (!content && aiResp?.output_text) content = String(aiResp.output_text);
 
-    const joined = textBlocks.join("\n").trim();
-    console.log("[Background] Combined text from AI:", joined.slice(0, 300));
-    if (!joined) throw new Error("No textual content in OpenAI response.");
+    console.log("[Background] Combined text from AI:", content.slice(0, 300));
+    if (!content) throw new Error("No textual content in OpenAI response.");
 
-    const jsonStr = extractFirstJson(joined);
+    const jsonStr = extractFirstJson(content);
     if (!jsonStr) throw new Error("Could not locate JSON in model output");
     return JSON.parse(jsonStr);
   } catch (err) {
@@ -175,13 +216,64 @@ function extractJsonFromOpenAIResponse(aiResp) {
 }
 
 function extractFirstJson(text) {
-  const startIdx = Math.min(
-    ...["[", "{"].map(ch => {
-      const idx = text.indexOf(ch);
-      return idx === -1 ? Infinity : idx;
-    })
-  );
-  if (!isFinite(startIdx)) return null;
+  // Look for JSON array start
+  const arrayStart = text.indexOf('[');
+  const objectStart = text.indexOf('{');
+  
+  let startIdx = -1;
+  if (arrayStart !== -1 && (objectStart === -1 || arrayStart < objectStart)) {
+    startIdx = arrayStart;
+  } else if (objectStart !== -1) {
+    startIdx = objectStart;
+  }
+  
+  if (startIdx === -1) return null;
+  
+  // Find the matching closing bracket/brace
+  let depth = 0;
+  let inString = false;
+  let escapeNext = false;
+  const startChar = text[startIdx];
+  const endChar = startChar === '[' ? ']' : '}';
+  
+  for (let i = startIdx; i < text.length; i++) {
+    const char = text[i];
+    
+    if (escapeNext) {
+      escapeNext = false;
+      continue;
+    }
+    
+    if (char === '\\') {
+      escapeNext = true;
+      continue;
+    }
+    
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+    
+    if (inString) continue;
+    
+    if (char === startChar) {
+      depth++;
+    } else if (char === endChar) {
+      depth--;
+      if (depth === 0) {
+        const candidate = text.slice(startIdx, i + 1);
+        try {
+          JSON.parse(candidate);
+          return candidate;
+        } catch (e) {
+          // Continue looking for other JSON
+          break;
+        }
+      }
+    }
+  }
+  
+  // Fallback to original method
   for (let end = startIdx + 1; end <= text.length; end++) {
     const candidate = text.slice(startIdx, end);
     try {
@@ -189,5 +281,6 @@ function extractFirstJson(text) {
       return candidate;
     } catch (_e) {}
   }
+  
   return null;
 }
