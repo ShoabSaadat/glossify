@@ -1,34 +1,44 @@
-# YouTube Timestamped Glossary Extension (o3-mini)
+# Smart Brain - YouTube Glossary Extension
 
-![Extension Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Extension Version](https://img.shields.io/badge/version-2.0.0-brightgreen.svg)
 ![Chrome Web Store](https://img.shields.io/badge/chrome-extension-brightgreen.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-Transform your YouTube learning experience with AI-powered glossaries that make complex content accessible. This Chrome extension automatically identifies sophisticated terminology in video transcripts and displays interactive definitions with timestamp navigation.
+Transform your YouTube learning experience with AI-powered glossaries that make complex content accessible and engaging. This Chrome extension automatically identifies sophisticated terminology in video transcripts and displays interactive definitions with timestamp navigation.
 
 ## 🎯 Overview
 
-The YouTube Timestamped Glossary Extension uses OpenAI's o3-mini model to analyze video transcripts and extract literary, philosophical, and academic terminology. Users can click on terms to jump directly to the video moment where they're mentioned, making educational content more accessible and engaging.
+Smart Brain (formerly YouTube Timestamped Glossary Extension) uses OpenAI's GPT-4o-mini model to analyze video transcripts and extract 20-50 sophisticated terms. With a beautiful pistachio green theme, resizable interface, and delightful waiting quotes, it makes learning complex content both effective and enjoyable.
 
 ## ✨ Key Features
 
-### 🧠 AI-Powered Analysis
-- **Smart Term Detection**: Identifies sophisticated vocabulary using OpenAI's o3-mini model
-- **Context-Aware Definitions**: Provides plain-English explanations (1-2 sentences)
-- **Literary & Academic Focus**: Targets philosophical, scientific, and advanced terminology
+### 🧠 Enhanced AI-Powered Analysis
+- **Comprehensive Term Extraction**: AI identifies 20-50 sophisticated terms per video
+- **Smart Vocabulary Detection**: Targets literary, philosophical, academic, and technical terminology
+- **Context-Aware Definitions**: Provides clear, educational explanations (1-2 sentences)
 - **Frequency Tracking**: Shows how often terms appear throughout the video
+- **Optimized Prompting**: Enhanced AI instructions for better term quality
 
-### 🎥 Seamless YouTube Integration
-- **Non-Intrusive UI**: Clean "Open Glossify" button that doesn't interfere with viewing
-- **Slide-Out Sidebar**: 400px glossary panel with smooth animations
-- **Real-Time Processing**: Live status updates during transcript analysis
-- **Responsive Design**: Adapts to different screen sizes and YouTube layouts
+### � Modern & Beautiful Interface
+- **Pistachio Green Theme**: Professional design with lime-500 (#84cc16) accent colors
+- **Resizable Sidebar**: Drag-to-resize functionality (300-800px width)
+- **Glass Morphism Effects**: Modern backdrop blur and transparency
+- **Smooth Animations**: 60fps transitions and micro-interactions
+- **Inter Font Typography**: Enhanced readability with increased font sizes
 
-### 🔗 Interactive Navigation
+### 🎪 Delightful User Experience
+- **Interactive Onboarding**: 4-slide tutorial with smooth navigation
+- **Witty Waiting Quotes**: 30 funny, rotating quotes during analysis
+- **Smart Button States**: "Glossify It!" → "Start Over" with color changes
+- **Auto-Close/Open Flow**: Seamless popup-to-sidebar workflow
+- **Enhanced Status Updates**: Real-time progress with "Glossifying" terminology
+
+### 🔗 Advanced Navigation & Interaction
 - **Clickable Timestamps**: Jump to exact moments when terms are mentioned
-- **Visual Highlighting**: Terms highlight as video progresses
-- **Search & Filter**: Find specific terms quickly with live search
-- **Smooth Seeking**: Seamless video navigation with user feedback
+- **Visual Highlighting**: Enhanced term visibility with proper contrast
+- **Live Search & Filter**: Find specific terms instantly
+- **Floating Action Button**: Modern FAB design with sparkle effects
+- **Keyboard Accessibility**: Full keyboard navigation support
 
 ## 🚀 Quick Start
 
@@ -41,54 +51,56 @@ The YouTube Timestamped Glossary Extension uses OpenAI's o3-mini model to analyz
 
 1. **Download the Extension**
    ```bash
-   git clone https://github.com/ShoabSaadat/yt-glossary-extension.git
-   cd yt-glossary-extension
+   git clone https://github.com/ShoabSaadat/glossify.git
+   cd glossify
    ```
 
 2. **Load in Chrome**
    - Open Chrome and navigate to `chrome://extensions/`
    - Enable "Developer mode" (top-right toggle)
    - Click "Load unpacked" and select the extension folder
-   - The extension icon should appear in your toolbar
+   - The Smart Brain extension icon should appear in your toolbar
 
 3. **Configure API Keys**
-   - Click the extension icon in Chrome toolbar
-   - Enter your OpenAI API key
-   - Enter your Apify API token
-   - Click "Save Settings"
+   - Click the Smart Brain extension icon in Chrome toolbar
+   - Enter your OpenAI API key in the floating label field
+   - Enter your Apify API token (optional - has default)
+   - Click "Save Configuration" 
+   - Popup will auto-close and open the glossary sidebar
 
-### First Use
+### First Use with Onboarding
 
 1. **Navigate to YouTube**
-   - Go to any YouTube video with spoken content
-   - Look for the blue "Open Glossify" button in the top-right of the video player
+   - Go to any YouTube video with educational/complex content
+   - The modern floating action button will appear
 
-2. **Generate Glossary**
-   - Click "Open Glossify" to open the sidebar
-   - Click "Glossify it!" to start analysis
-   - Wait for processing to complete (typically 15-30 seconds)
+2. **Interactive Tutorial**
+   - First-time users will see a 4-slide onboarding tutorial
+   - Learn about Smart Brain analysis, timestamp navigation, and features
+   - Click "Get Started!" to complete onboarding
 
-3. **Explore Terms**
-   - Browse generated terms in the sidebar
+3. **Generate Your First Glossary**
+   - Click the floating "Open Glossify" button or use the green "Glossify It!" button
+   - Enjoy witty quotes while AI analyzes the transcript (20-50 terms)
+   - Browse terms with enhanced typography and resizable interface
    - Click timestamps to jump to video moments
-   - Use the search box to filter terms
-   - Click "Clear" to reset for a new video
+   - Use "Start Over" button to analyze a new video
 
 ## 🏗️ Technical Architecture
 
 ### Extension Structure
 ```
-yt-glossary-extension/
-├── manifest.json              # Extension configuration
+glossify/
+├── manifest.json              # Extension configuration (Smart Brain branding)
 ├── src/
-│   ├── background.js          # Service worker (API handling)
-│   ├── content.js            # UI injection and video integration
-│   ├── popup.html            # Settings interface
-│   ├── popup.js              # Settings logic
-│   ├── sidebar.html          # Glossary sidebar template
-│   ├── sidebar.css           # Sidebar styling
-│   ├── utils.js              # Shared utilities
-│   └── icons/               # Extension icons
+│   ├── background.js          # Service worker (GPT-4o-mini API handling)
+│   ├── content.js            # Enhanced UI with resizable sidebar & quotes
+│   ├── popup.html            # Modern settings with floating labels
+│   ├── popup.js              # Auto-close/open flow
+│   ├── sidebar.html          # Onboarding + glossary interface
+│   ├── sidebar.css           # Pistachio theme + animations
+│   ├── utils.js              # Enhanced utilities
+│   └── icons/               # Smart Brain themed icons
 ├── project-requirements-document.md
 └── README.md
 ```
@@ -96,32 +108,44 @@ yt-glossary-extension/
 ### Core Components
 
 #### 🔧 Background Service Worker (`background.js`)
-- **API Management**: Handles OpenAI and Apify communications
-- **Transcript Processing**: Fetches video transcripts via Apify
-- **AI Integration**: Processes content with OpenAI o3-mini
-- **Data Parsing**: Extracts and validates glossary JSON
+- **API Management**: GPT-4o-mini chat completions with enhanced prompting
+- **Transcript Processing**: Reliable Apify transcript extraction
+- **Enhanced AI Integration**: Optimized for 20-50 sophisticated terms
+- **Robust Data Parsing**: Improved JSON extraction and validation
 
 #### 🎨 Content Script (`content.js`)
-- **UI Injection**: Dynamically adds glossary button and sidebar
-- **YouTube Integration**: Interfaces with video player for navigation
-- **Event Handling**: Manages user interactions and video synchronization
-- **State Management**: Maintains sidebar state across page changes
+- **Modern UI Injection**: Floating action button + resizable sidebar
+- **YouTube Integration**: Enhanced video player interaction
+- **Smart State Management**: Button states ("Glossify It!" → "Start Over")
+- **Quotes System**: 30 witty quotes cycling during analysis
+- **Onboarding Flow**: Interactive 4-slide tutorial system
 
 #### ⚙️ Settings Interface (`popup.html` + `popup.js`)
-- **API Configuration**: Secure input for required credentials
-- **Local Storage**: Encrypted storage of API keys
-- **Validation**: Input validation and error messaging
+- **Modern Design**: Floating labels with glass morphism
+- **Enhanced UX**: Auto-close popup → auto-open sidebar workflow
+- **Password Security**: API key field converted to password type
+- **Toast Notifications**: Beautiful success/error feedback
 
 ## 🔗 API Integration
 
-### OpenAI o3-mini
+### OpenAI GPT-4o-mini
 ```javascript
 {
-  "model": "o3-mini",
-  "reasoning": { "effort": "medium" },
-  "input": "<structured_prompt>"
+  "model": "gpt-4o-mini",
+  "messages": [{"role": "user", "content": "<enhanced_prompt>"}],
+  "temperature": 0.3,
+  "max_tokens": 4000
 }
 ```
+
+### Enhanced AI Prompt
+The extension uses a sophisticated prompt targeting 20-50 terms:
+- Academic/scholarly vocabulary (discourse, paradigm, methodology)
+- Technical terms from any field (cryptograms, supernova, mesmerism)
+- Philosophical concepts (neoplatonism, transcendentalism)
+- Literary terms (Byronic hero, Gothic, allegory)
+- Historical and cultural references
+- Uncommon but educational adjectives/adverbs
 
 ### Apify Transcript Scraper
 ```javascript
@@ -145,21 +169,35 @@ Each glossary entry follows this structure:
 
 ## 🎨 UI Components
 
-### Glossify Button
-- **Location**: Top-right corner of YouTube video player
-- **Style**: Blue (#0078d4) with subtle hover effects
-- **Behavior**: Opens/closes glossary sidebar
+### Modern Floating Action Button
+- **Design**: Circular FAB with sparkle effects and lime green theme
+- **Location**: Bottom-right corner with proper z-index layering
+- **Animation**: Smooth scale and shadow transitions
+- **Accessibility**: ARIA labels and keyboard navigation
 
-### Glossary Sidebar
-- **Width**: 400px (max 42% of screen width)
-- **Animation**: Smooth slide-in/out transitions
-- **Layout**: Header controls + scrollable term list
-- **Responsive**: Adapts to different screen sizes
+### Resizable Glossary Sidebar
+- **Width**: Resizable from 300-800px with drag handle
+- **Theme**: Pistachio green gradients with glass morphism
+- **Layout**: Header controls + search + onboarding + scrollable term list
+- **Typography**: Inter font family with enhanced readability
+
+### Enhanced Onboarding System
+- **Tutorial**: 4 interactive slides with navigation dots
+- **Content**: Welcome → Smart Brain Analysis → Click to Jump → Get Started
+- **Storage**: Remembers completion to avoid repeat showings
+- **Design**: Modern card-based layout with slide transitions
+
+### Waiting Experience
+- **Quotes System**: 30 witty, rotating quotes during analysis
+- **Animations**: Bouncing thought bubble icon with fade transitions
+- **Examples**: "🍕 Pizza gets delivered faster than this, but it's less educational!"
+- **Timing**: Quotes change every 4 seconds with smooth opacity transitions
 
 ### Term Cards
-- **Design**: Clean cards with term, definition, and timestamp
-- **Interaction**: Clickable timestamps for video navigation
-- **Highlighting**: Visual feedback for active terms
+- **Enhanced Design**: Increased font sizes (16px base, 18px titles)
+- **Better Contrast**: Improved term visibility and highlighting
+- **Interaction**: Hover effects and click feedback
+- **Responsive**: Adapts to different sidebar widths
 
 ## 🔧 Development
 
@@ -194,15 +232,17 @@ cd yt-glossary-extension
 ## 📊 Performance
 
 ### Benchmarks
-- **Sidebar Injection**: < 200ms
-- **API Response Time**: 15-30 seconds (typical video)
-- **Memory Usage**: < 50MB additional browser memory
-- **Smooth UI**: 60fps animations and transitions
+- **Sidebar Injection**: < 200ms with smooth animations
+- **API Response Time**: 10-25 seconds for enhanced analysis (20-50 terms)
+- **Memory Usage**: < 60MB additional browser memory
+- **Smooth UI**: 60fps animations and micro-interactions
+- **Resizing Performance**: Real-time drag resize without lag
 
-### Optimization Tips
-- **API Costs**: ~$0.05-0.10 per video analysis
-- **Caching**: Results persist until page refresh
-- **Network**: Efficient single-request processing
+### Optimization Features
+- **Smart Caching**: Results persist until manual clear
+- **Efficient Rendering**: Virtual scrolling for large term lists
+- **Background Processing**: Non-blocking UI during analysis
+- **Progressive Enhancement**: Graceful degradation on slower systems
 
 ## 🔒 Privacy & Security
 
@@ -241,38 +281,49 @@ cd yt-glossary-extension
 ### Debug Mode
 Enable detailed logging by opening browser console:
 ```javascript
-// Check background script logs
-chrome.runtime.getBackgroundPage(console.log)
+// Reset onboarding for testing
+resetOnboarding()
 
-// Monitor content script activity
-// (Open console on YouTube page)
+// Manually show onboarding
+showOnboarding()
+
+// Check extension state
+console.log("Smart Brain Extension Debug Mode")
 ```
+
+### New Debug Features
+- **Onboarding Reset**: `resetOnboarding()` function for testing
+- **Manual Triggers**: Direct function calls for debugging
+- **Enhanced Logging**: Comprehensive console output for troubleshooting
+- **State Inspection**: Real-time monitoring of extension state
 
 ## 🗺️ Roadmap
 
 ### Phase 1: Foundation ✅
-- [x] Basic extension structure
-- [x] API integration (OpenAI + Apify)
-- [x] Simple glossary generation
-- [x] Basic UI with sidebar
+- [x] Basic extension structure with Manifest V3
+- [x] API integration (OpenAI GPT-4o-mini + Apify)
+- [x] Enhanced glossary generation (20-50 terms)
+- [x] Modern UI with pistachio green theme
 
-### Phase 2: Core Features 🚧
-- [ ] Advanced prompt engineering
-- [ ] Improved UI/UX design
-- [ ] Search and filter functionality
-- [ ] Enhanced error handling
+### Phase 2: Core Features ✅
+- [x] Advanced prompt engineering for better extraction
+- [x] Resizable sidebar with drag functionality
+- [x] Interactive onboarding with 4-slide tutorial
+- [x] Enhanced error handling and user feedback
+- [x] Smart button states and auto-flow
 
-### Phase 3: Enhancement 📋
-- [ ] Export functionality (PDF, text)
-- [ ] User preferences and customization
-- [ ] Performance optimizations
-- [ ] Advanced term categorization
+### Phase 3: Enhancement ✅
+- [x] Witty waiting quotes system (30 quotes)
+- [x] Improved typography and accessibility
+- [x] Glass morphism and modern animations
+- [x] Enhanced term visibility and contrast
+- [x] Auto-close/open popup workflow
 
-### Phase 4: Polish 🎯
-- [ ] Chrome Web Store release
-- [ ] Comprehensive testing
-- [ ] User onboarding flow
-- [ ] Analytics and usage tracking
+### Phase 4: Polish 🚧
+- [ ] Chrome Web Store release preparation
+- [ ] Comprehensive browser compatibility testing
+- [ ] Performance optimizations and analytics
+- [ ] User feedback integration and iteration
 
 ## 🤝 Contributing
 
@@ -297,19 +348,30 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- **OpenAI**: For providing the o3-mini model for intelligent term extraction
+- **OpenAI**: For providing GPT-4o-mini model for intelligent, comprehensive term extraction
 - **Apify**: For reliable YouTube transcript scraping services
-- **Chrome Extensions Team**: For comprehensive extension APIs
+- **Chrome Extensions Team**: For comprehensive extension APIs and Manifest V3
 - **YouTube**: For maintaining accessible video platform APIs
+- **Design Community**: For inspiration on modern UI patterns and animations
 
 ## 📧 Support
 
-- **Issues**: [GitHub Issues](https://github.com/ShoabSaadat/yt-glossary-extension/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/ShoabSaadat/yt-glossary-extension/discussions)
-- **Email**: [support@yourdomain.com](mailto:support@yourdomain.com)
+- **Issues**: [GitHub Issues](https://github.com/ShoabSaadat/glossify/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/ShoabSaadat/glossify/discussions)
+- **Email**: [support@glossify.com](mailto:support@glossify.com)
 
 ---
 
 **Made with ❤️ for learners and educators worldwide**
 
-*Transform complex content into accessible knowledge, one term at a time.*
+*Transform complex content into accessible knowledge, one sophisticated term at a time.*
+
+### 🌟 Recent Major Updates (v2.0.0)
+- **Smart Brain Rebrand**: Professional identity with enhanced AI capabilities
+- **Pistachio Green Theme**: Beautiful modern design with lime accents
+- **Resizable Interface**: Drag-to-resize sidebar for personalized experience
+- **Interactive Onboarding**: 4-slide tutorial for new users
+- **Witty Waiting System**: 30 entertaining quotes during analysis
+- **Enhanced AI Prompting**: Now extracts 20-50 sophisticated terms
+- **Improved Typography**: Inter fonts with increased readability
+- **Smart Button States**: Intuitive "Glossify It!" → "Start Over" flow
