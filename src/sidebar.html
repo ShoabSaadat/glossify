@@ -59,6 +59,10 @@
         <h2>Glossify</h2>
       </div>
       <div class="header-controls">
+        <button class="btn-icon btn-library" id="glossary-library-btn" title="Personal Library">
+          <span>📚</span>
+          <span class="library-count hidden" id="libraryCount">0</span>
+        </button>
         <button class="btn-icon btn-minimize" id="glossary-toggle-btn" title="Toggle sidebar">
           <span>⇤</span>
         </button>
@@ -144,6 +148,39 @@
     <!-- Glossary list -->
     <div class="glossary-list hidden" id="glossary-list">
       <!-- Term cards will be inserted here -->
+    </div>
+
+    <!-- Personal Library -->
+    <div class="library-view hidden" id="library-view">
+      <div class="library-header">
+        <div class="library-title">
+          <span class="library-icon">📚</span>
+          <h3>Personal Library</h3>
+          <span class="library-stats" id="libraryStats">0 saved terms</span>
+        </div>
+        <div class="library-controls">
+          <div class="library-search-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="Search saved terms..." class="library-search-input" id="library-search">
+          </div>
+          <button class="btn-secondary btn-small" id="export-library-btn">
+            <span>📤</span>
+            <span>Export</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Library Empty State -->
+      <div class="library-empty-state" id="library-empty-state">
+        <div class="library-empty-icon">📖</div>
+        <h3>Your library is empty</h3>
+        <p>Save terms from videos by clicking the ❤️ button on any term card. Build your personal vocabulary collection!</p>
+      </div>
+      
+      <!-- Library Terms List -->
+      <div class="library-terms-list" id="library-terms-list">
+        <!-- Saved terms will be inserted here -->
+      </div>
     </div>
   </main>
 

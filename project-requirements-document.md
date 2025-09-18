@@ -7,7 +7,10 @@
 Smart Brain - YouTube Glossary Extension (GPT-4o-mini Enhanced)
 
 ### Purpose
-A Chrome browser extension that automatically generates comprehensive, interactive glossaries of 20-50 sophisticated terms from YouTube video transcripts, featuring a modern pistachio green theme, resizable interface, witty waiting quotes, and delightful user experience.
+A Chrome browser extension that automatically generates comp6. **Navigation**: Click timestamps for precise video jumping
+7. **Library Management**: Save terms (🤍→❤️), browse collection (📚), export library
+8. **Cross-Video Learning**: Access saved terms from any video session
+9. **Reset**: "Start Over" button for new video analysissive, interactive glossaries of 20-50 sophisticated terms from YouTube video transcripts, featuring a modern pistachio green theme, resizable interface, witty waiting quotes, and delightful user experience.
 
 ### Target Users
 - Students consuming educational YouTube content
@@ -61,6 +64,15 @@ A Chrome browser extension that automatically generates comprehensive, interacti
 - **Smart Synchronization**: Real-time video position tracking and term highlighting
 - **Smooth Seeking**: Seamless video navigation with visual feedback and loading states
 
+### 1.6 Personal Library System
+- **Term Collection**: Save interesting terms with heart button interactions (🤍→❤️)
+- **Persistent Storage**: Chrome local storage for cross-session term persistence
+- **Library Management**: Beautiful interface for browsing, searching, and organizing saved terms
+- **Cross-Video Navigation**: Jump to original timestamps from any saved term
+- **Export Functionality**: Download personal library as structured JSON file
+- **Smart Metadata**: Track video source, save date, and context for each term
+- **Search & Filter**: Real-time filtering of saved terms by name or definition
+
 ---
 
 ## 2. Technical Architecture
@@ -106,6 +118,8 @@ smart-brain-glossify/
 - **Smart State Management**: Button state transitions with visual feedback
 - **Resize Handle Logic**: Drag-to-resize with constraints and smooth performance
 - **Enhanced Event Handling**: Debounced interactions and smooth animations
+- **Personal Library System**: Term saving, library view, cross-video navigation
+- **Export Management**: JSON library export with structured metadata
 
 #### 2.2.4 Modern Settings Interface
 - **Floating Label Design**: Contemporary form inputs with smooth animations
@@ -174,7 +188,39 @@ The system uses sophisticated prompting to extract diverse terminology:
 
 ---
 
-## 4. Enhanced User Experience Requirements
+## 4. Personal Library System Requirements
+
+### 4.1 Term Collection & Storage
+- **Save Functionality**: Heart button (🤍→❤️) on every term card for instant saving
+- **Chrome Storage Integration**: Persistent term storage across browser sessions
+- **Metadata Enrichment**: Automatically capture video URL, title, timestamp, and save date
+- **Duplicate Prevention**: Smart detection to avoid saving the same term multiple times
+- **Storage Efficiency**: Optimized data structure for fast retrieval and minimal memory usage
+
+### 4.2 Library Interface Design
+- **Toggle Navigation**: 📚 Library button in sidebar header with notification badge
+- **Beautiful Library View**: Professional card-based layout with enhanced typography
+- **Empty State**: Engaging instructions to encourage first saves
+- **Search Functionality**: Real-time filtering by term name or definition
+- **Export Controls**: One-click JSON export with structured metadata
+
+### 4.3 Library Term Management
+- **Rich Term Cards**: Display term, definition, video source, timestamp, and save date
+- **Action Buttons**: Hover-revealed edit and delete controls
+- **Video Navigation**: Click timestamps to jump to original video moments
+- **Cross-Video Support**: Open different videos in new tabs with timestamp parameters
+- **Bulk Operations**: Future support for bulk export, delete, and categorization
+
+### 4.4 Library User Experience
+- **Seamless Integration**: Library view fits naturally within existing sidebar design
+- **State Management**: Proper view switching without losing context or data
+- **Visual Feedback**: Toast notifications for save, remove, and export actions
+- **Progressive Enhancement**: Library features enhance but don't interfere with core glossary functionality
+- **Performance Optimization**: Efficient rendering for libraries with 100+ saved terms
+
+---
+
+## 5. Enhanced User Experience Requirements
 
 ### 4.1 Modern Visual Design
 - **Pistachio Green Theme**: Primary colors lime-500 (#84cc16), lime-600 (#65a30d), lime-700 (#4d7c0f)
@@ -214,8 +260,12 @@ The system uses sophisticated prompting to extract diverse terminology:
 3. **Onboarding**: First-time tutorial (skippable for returning users)
 4. **Processing**: AI analysis with entertaining quotes and progress
 5. **Results**: Resizable sidebar with 20-50 interactive terms
-6. **Navigation**: Click timestamps for precise video jumping
-7. **Reset**: "Start Over" button for new video analysis
+6. **Term Saving**: Click heart buttons (🤍→❤️) to save interesting terms
+7. **Navigation**: Click timestamps for precise video jumping
+8. **Library Access**: Toggle to library view (📚) to review saved collection
+9. **Cross-Video Learning**: Access saved terms from any video session
+10. **Export & Backup**: Download personal library for offline access
+11. **Reset**: "Start Over" button for new video analysis
 
 ### 4.5 Enhanced Performance Requirements
 - **Sidebar Injection**: < 200ms with smooth animation
@@ -248,20 +298,23 @@ The system uses sophisticated prompting to extract diverse terminology:
 - [x] Witty waiting quotes (30 rotating quotes during analysis)
 - [x] Enhanced typography with Inter fonts and improved readability
 - [x] Auto-close popup → auto-open sidebar workflow
+- [x] Personal Library system with term saving and collection management
+- [x] Cross-video navigation and export functionality
 
 ### Phase 4: Polish & Optimization 🚧 (In Progress)
 - [x] Comprehensive debugging utilities (resetOnboarding, showOnboarding)
 - [x] Enhanced state management and error recovery
+- [x] Personal vocabulary collection with persistent storage
 - [ ] Performance optimizations and memory management
 - [ ] Cross-browser compatibility testing
 - [ ] Chrome Web Store preparation and submission
 
 ### Phase 5: Future Enhancements 📋 (Planned)
-- [ ] Export functionality (PDF, markdown, text formats)
-- [ ] User preferences and customization options
-- [ ] Advanced term categorization and filtering
-- [ ] Analytics and usage insights
+- [ ] Advanced library features (categories, tags, notes)
+- [ ] Collaborative sharing of term collections
+- [ ] Progress tracking and learning analytics
 - [ ] Multi-language support and internationalization
+- [ ] Integration with external vocabulary learning platforms
 
 ---
 
@@ -293,6 +346,29 @@ The system uses sophisticated prompting to extract diverse terminology:
 - **Network Usage**: Smart caching and efficient API call management
 - **Animation Performance**: Consistent 60fps across all UI interactions
 - **Resize Performance**: Real-time drag operations without performance degradation
+- **Library Performance**: < 100ms rendering for libraries with 100+ terms
+- **Search Performance**: Real-time filtering with < 50ms response time
+
+### 6.5 Personal Library Data Architecture
+```json
+{
+  "term": "phenomenology",
+  "meaning": "The philosophical study of experience and consciousness.",
+  "timestamp": "12:34",
+  "seconds": 754,
+  "context_excerpt": "when discussing phenomenology in relation to...",
+  "tally": 3,
+  "savedAt": "2025-09-17T10:30:00.000Z",
+  "videoUrl": "https://youtube.com/watch?v=abc123",
+  "videoTitle": "Philosophy Lecture - Consciousness and Reality"
+}
+```
+
+**Storage Strategy:**
+- Chrome local storage for persistence across sessions
+- Efficient JSON serialization for fast read/write operations
+- Automatic cleanup of orphaned or corrupted entries
+- Export compatibility with standard vocabulary learning formats
 
 ---
 
@@ -362,6 +438,16 @@ The system uses sophisticated prompting to extract diverse terminology:
 - **Sidebar Resize Usage**: 60%+ customize sidebar width at least once
 - **Quote Engagement**: Users wait through average 3+ quote cycles
 - **Auto-Flow Success**: 95%+ successful popup→sidebar transitions
+- **Library Adoption**: 70%+ users save at least 5 terms to personal library
+- **Cross-Video Usage**: 40%+ users access saved terms from different videos
+- **Export Usage**: 25%+ users export their library at least once
+
+### 9.4 Personal Library Success Metrics
+- **Saving Behavior**: Average 8-12 terms saved per user session
+- **Library Retention**: 85%+ of saved terms remain in library after 30 days
+- **Cross-Session Usage**: 60%+ users access library across multiple browser sessions
+- **Export Engagement**: 30%+ users export library within first month of usage
+- **Search Utilization**: 50%+ users search their library when it contains 10+ terms
 
 ### 9.4 Operational Excellence
 - **API Costs**: Maintain under $150/month operational costs (scaled for higher usage)
@@ -389,30 +475,39 @@ The system uses sophisticated prompting to extract diverse terminology:
 
 ## Conclusion
 
-Smart Brain represents a significant evolution from a basic glossary tool to a comprehensive, delightful learning companion. The v2.0.0 release establishes new standards for educational browser extensions through:
+Smart Brain represents a significant evolution from a basic glossary tool to a comprehensive, delightful learning companion with persistent vocabulary collection. The v2.0.0 release establishes new standards for educational browser extensions through:
 
 ### 🎯 **Technical Excellence**
 - Robust GPT-4o-mini integration with 20-50 term extraction
 - Modern Manifest V3 architecture with enhanced security
 - Performance-optimized UI with 60fps animations
 - Comprehensive error handling and recovery systems
+- Persistent personal library with cross-session term management
 
 ### 🎨 **Design Innovation** 
 - Professional pistachio green theme with glass morphism
 - Resizable interface for personalized user experience
 - Interactive onboarding that educates and delights
 - Witty waiting system that transforms analysis time into entertainment
+- Beautiful library interface with smart metadata and export capabilities
 
 ### 🚀 **User Experience Leadership**
 - Seamless auto-flow from configuration to usage
 - Smart button states that guide user actions
 - Enhanced accessibility and keyboard navigation
 - Comprehensive debugging and testing utilities
+- Personal vocabulary collection that grows with learning journey
 
-This requirements document serves as the definitive reference for Smart Brain's current capabilities and future development roadmap. All features have been implemented and tested, establishing a solid foundation for Chrome Web Store release and continued evolution.
+### 📚 **Learning Platform Evolution**
+- **From Single-Video Tool** → **Comprehensive Learning Platform**
+- **From Temporary Analysis** → **Persistent Knowledge Building**
+- **From Basic Definitions** → **Rich Educational Experience**
+- **From Isolated Terms** → **Connected Learning Journey**
 
-**Next Phase**: Focus on performance optimization, comprehensive testing, and Chrome Web Store preparation to share this transformative learning tool with educators and students worldwide.
+This requirements document serves as the definitive reference for Smart Brain's current capabilities and future development roadmap. All core features have been implemented and tested, with the Personal Library system representing a major advancement toward comprehensive vocabulary learning platform.
+
+**Next Phase**: Focus on advanced library features (categorization, sharing), performance optimization, and Chrome Web Store preparation to share this transformative learning ecosystem with educators and students worldwide.
 
 ---
 
-*Document Version: 2.0.0 | Last Updated: September 2025 | Status: Implementation Complete*
+*Document Version: 2.1.0 | Last Updated: September 2025 | Status: Personal Library System Complete*

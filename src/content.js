@@ -13,6 +13,8 @@
       this.isAnalyzing = false;
       this.isAnalyzed = false; // Track if video has been analyzed
       this.quotesTimer = null; // Timer for cycling quotes
+      this.isLibraryView = false; // Track if showing library view
+      this.savedTerms = []; // Cache for saved terms
       
       // Witty waiting quotes with emojis
       this.waitingQuotes = [
@@ -223,6 +225,31 @@
         });
       }
       
+      // Library functionality
+      const libraryBtn = document.getElementById("glossary-library-btn");
+      if (libraryBtn) {
+        libraryBtn.addEventListener("click", () => {
+          this.toggleLibraryView();
+        });
+      }
+      
+      const librarySearch = document.getElementById("library-search");
+      if (librarySearch) {
+        librarySearch.addEventListener("input", (e) => {
+          this.filterLibraryTerms(e.target.value);
+        });
+      }
+      
+      const exportBtn = document.getElementById("export-library-btn");
+      if (exportBtn) {
+        exportBtn.addEventListener("click", () => {
+          this.exportLibrary();
+        });
+      }
+      
+      // Load saved terms and update library count
+      this.loadSavedTerms();
+      
       // Setup onboarding functionality
       this.setupOnboarding();
       
@@ -399,10 +426,20 @@
       const emptyState = document.getElementById("emptyState");
       const loadingState = document.getElementById("loadingState");
       const glossaryList = document.getElementById("glossary-list");
+      const libraryView = document.getElementById("library-view");
       
       if (emptyState) emptyState.classList.remove("hidden");
       if (loadingState) loadingState.classList.add("hidden");
       if (glossaryList) glossaryList.classList.add("hidden");
+      if (libraryView) libraryView.classList.add("hidden");
+      
+      // Reset library view state
+      this.isLibraryView = false;
+      const libraryBtn = document.getElementById("glossary-library-btn");
+      if (libraryBtn) {
+        libraryBtn.style.background = '';
+        libraryBtn.title = 'Personal Library';
+      }
       
       // Stop quotes cycling when leaving loading state
       this.stopQuotesCycling();
@@ -489,12 +526,22 @@
       const emptyState = document.getElementById("emptyState");
       const loadingState = document.getElementById("loadingState");
       const glossaryList = document.getElementById("glossary-list");
+      const libraryView = document.getElementById("library-view");
       const sidebarFooter = document.getElementById("sidebarFooter");
       
       if (emptyState) emptyState.classList.add("hidden");
       if (loadingState) loadingState.classList.add("hidden");
+      if (libraryView) libraryView.classList.add("hidden");
       if (glossaryList) glossaryList.classList.remove("hidden");
       if (sidebarFooter) sidebarFooter.classList.remove("hidden");
+      
+      // Reset library view state
+      this.isLibraryView = false;
+      const libraryBtn = document.getElementById("glossary-library-btn");
+      if (libraryBtn) {
+        libraryBtn.style.background = '';
+        libraryBtn.title = 'Personal Library';
+      }
     }
     
     clearGlossary() {
@@ -640,7 +687,12 @@
         const ts = item.timestamp || this.secondsToTimestamp(item.seconds || 0);
         card.dataset.seconds = item.seconds || 0;
         
+        const isSaved = this.isTermSaved(item.term);
+        
         card.innerHTML = `
+          <button class="term-save-btn ${isSaved ? 'saved' : ''}" onclick="glossifyUI.toggleTermSave(this, '${this.escapeHtml(item.term)}')" title="${isSaved ? 'Remove from library' : 'Save to library'}">
+            ${isSaved ? '❤️' : '🤍'}
+          </button>
           <div class="glossary-ts" onclick="event.stopPropagation();" style="cursor: pointer;">
             <span>▶</span> ${ts}
           </div>
@@ -651,6 +703,9 @@
           <div class="glossary-meaning">${this.escapeHtml(item.meaning || "")}</div>
           <div class="glossary-context">${this.escapeHtml(item.context_excerpt || "")}</div>
         `;
+        
+        // Store the full term data on the card for saving
+        card.termData = item;
         
         // Add click handlers
         const timestamp = card.querySelector('.glossary-ts');
@@ -799,6 +854,289 @@
       if (!s) return "";
       return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
+    
+    // Personal Library Methods
+    async loadSavedTerms() {
+      return new Promise((resolve) => {
+        chrome.storage.local.get(['savedTerms'], (result) => {
+          this.savedTerms = result.savedTerms || [];
+          this.updateLibraryCount();
+          resolve(this.savedTerms);
+        });
+      });
+    }
+    
+    async saveTermToLibrary(term) {
+      const savedTerm = {
+        ...term,
+        savedAt: new Date().toISOString(),
+        videoUrl: location.href,
+        videoTitle: document.title
+      };
+      
+      // Check if already saved
+      const existingIndex = this.savedTerms.findIndex(t => t.term === term.term);
+      if (existingIndex === -1) {
+        this.savedTerms.push(savedTerm);
+        
+        chrome.storage.local.set({ savedTerms: this.savedTerms }, () => {
+          this.updateLibraryCount();
+          this.showToast(`💾 "${term.term}" saved to library!`, 'success');
+        });
+      }
+    }
+    
+    async removeTermFromLibrary(termText) {
+      this.savedTerms = this.savedTerms.filter(t => t.term !== termText);
+      
+      chrome.storage.local.set({ savedTerms: this.savedTerms }, () => {
+        this.updateLibraryCount();
+        this.renderLibraryView();
+        this.showToast(`🗑️ "${termText}" removed from library`, 'info');
+      });
+    }
+    
+    isTermSaved(termText) {
+      return this.savedTerms.some(t => t.term === termText);
+    }
+    
+    updateLibraryCount() {
+      const countEl = document.getElementById("libraryCount");
+      if (countEl) {
+        const count = this.savedTerms.length;
+        countEl.textContent = count;
+        if (count > 0) {
+          countEl.classList.remove("hidden");
+        } else {
+          countEl.classList.add("hidden");
+        }
+      }
+    }
+    
+    toggleLibraryView() {
+      this.isLibraryView = !this.isLibraryView;
+      
+      const glossaryList = document.getElementById("glossary-list");
+      const libraryView = document.getElementById("library-view");
+      const emptyState = document.getElementById("emptyState");
+      const loadingState = document.getElementById("loadingState");
+      
+      if (this.isLibraryView) {
+        // Show library view
+        if (glossaryList) glossaryList.classList.add("hidden");
+        if (emptyState) emptyState.classList.add("hidden");
+        if (loadingState) loadingState.classList.add("hidden");
+        if (libraryView) libraryView.classList.remove("hidden");
+        
+        this.renderLibraryView();
+      } else {
+        // Show glossary view
+        if (libraryView) libraryView.classList.add("hidden");
+        
+        if (this.isAnalyzed) {
+          this.showGlossaryList();
+        } else {
+          this.showEmptyState();
+        }
+      }
+      
+      // Update library button state
+      const libraryBtn = document.getElementById("glossary-library-btn");
+      if (libraryBtn) {
+        if (this.isLibraryView) {
+          libraryBtn.style.background = 'rgba(132, 204, 22, 0.2)';
+          libraryBtn.title = 'Back to Glossary';
+        } else {
+          libraryBtn.style.background = '';
+          libraryBtn.title = 'Personal Library';
+        }
+      }
+    }
+    
+    renderLibraryView() {
+      const emptyState = document.getElementById("library-empty-state");
+      const termsList = document.getElementById("library-terms-list");
+      const statsEl = document.getElementById("libraryStats");
+      
+      // Update stats
+      if (statsEl) {
+        const count = this.savedTerms.length;
+        statsEl.textContent = count === 0 ? '0 saved terms' : 
+                            count === 1 ? '1 saved term' : 
+                            `${count} saved terms`;
+      }
+      
+      if (this.savedTerms.length === 0) {
+        if (emptyState) emptyState.classList.remove("hidden");
+        if (termsList) termsList.classList.add("hidden");
+        return;
+      }
+      
+      if (emptyState) emptyState.classList.add("hidden");
+      if (termsList) {
+        termsList.classList.remove("hidden");
+        termsList.innerHTML = "";
+        
+        // Sort by most recently saved
+        const sortedTerms = [...this.savedTerms].sort((a, b) => 
+          new Date(b.savedAt) - new Date(a.savedAt)
+        );
+        
+        sortedTerms.forEach((term, index) => {
+          const card = this.createLibraryTermCard(term, index);
+          termsList.appendChild(card);
+        });
+      }
+    }
+    
+    createLibraryTermCard(term, index) {
+      const card = document.createElement("div");
+      card.className = "library-term-card";
+      card.style.animationDelay = `${index * 0.1}s`;
+      
+      const savedDate = new Date(term.savedAt).toLocaleDateString();
+      const videoTitle = term.videoTitle ? term.videoTitle.replace(' - YouTube', '') : 'Unknown Video';
+      
+      card.innerHTML = `
+        <div class="library-term-header">
+          <h4 class="library-term-title">${term.term}</h4>
+          <div class="library-term-actions">
+            <button class="library-action-btn" onclick="glossifyUI.jumpToVideoTime('${term.videoUrl}', ${term.seconds})" title="Jump to video">⏱️</button>
+            <button class="library-action-btn library-remove-btn" onclick="glossifyUI.removeTermFromLibrary('${term.term}')" title="Remove from library">🗑️</button>
+          </div>
+        </div>
+        <div class="library-term-meaning">${term.meaning}</div>
+        <div class="library-term-meta">
+          <span class="library-term-source" title="${videoTitle}">${videoTitle.length > 30 ? videoTitle.substring(0, 30) + '...' : videoTitle}</span>
+          ${term.timestamp ? `<span class="library-term-timestamp" onclick="glossifyUI.jumpToVideoTime('${term.videoUrl}', ${term.seconds})">${term.timestamp}</span>` : ''}
+          <span class="library-term-saved-date">Saved ${savedDate}</span>
+        </div>
+      `;
+      
+      return card;
+    }
+    
+    jumpToVideoTime(videoUrl, seconds) {
+      if (location.href.includes(videoUrl.split('?')[0])) {
+        // Same video, just seek
+        if (this.video) {
+          this.video.currentTime = seconds;
+          this.showToast(`⏱️ Jumped to ${this.secondsToTimestamp(seconds)}`, 'info');
+        }
+      } else {
+        // Different video, open in new tab
+        const urlWithTime = `${videoUrl}&t=${Math.floor(seconds)}s`;
+        window.open(urlWithTime, '_blank');
+      }
+    }
+    
+    filterLibraryTerms(searchQuery) {
+      const cards = document.querySelectorAll('.library-term-card');
+      const query = searchQuery.toLowerCase();
+      
+      cards.forEach(card => {
+        const title = card.querySelector('.library-term-title').textContent.toLowerCase();
+        const meaning = card.querySelector('.library-term-meaning').textContent.toLowerCase();
+        
+        if (title.includes(query) || meaning.includes(query)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+    
+    exportLibrary() {
+      if (this.savedTerms.length === 0) {
+        this.showToast('📚 No terms to export', 'info');
+        return;
+      }
+      
+      const exportData = {
+        exportDate: new Date().toISOString(),
+        totalTerms: this.savedTerms.length,
+        terms: this.savedTerms.map(term => ({
+          term: term.term,
+          meaning: term.meaning,
+          timestamp: term.timestamp,
+          videoTitle: term.videoTitle,
+          savedAt: term.savedAt
+        }))
+      };
+      
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `smart-brain-library-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      this.showToast(`📤 Library exported! (${this.savedTerms.length} terms)`, 'success');
+    }
+    
+    toggleTermSave(buttonEl, termText) {
+      const card = buttonEl.closest('.glossary-item');
+      if (!card || !card.termData) return;
+      
+      const term = card.termData;
+      const isSaved = this.isTermSaved(termText);
+      
+      if (isSaved) {
+        // Remove from library
+        this.removeTermFromLibrary(termText);
+        buttonEl.textContent = '🤍';
+        buttonEl.classList.remove('saved');
+        buttonEl.title = 'Save to library';
+      } else {
+        // Save to library
+        this.saveTermToLibrary(term);
+        buttonEl.textContent = '❤️';
+        buttonEl.classList.add('saved');
+        buttonEl.title = 'Remove from library';
+      }
+    }
+    
+    showToast(message, type = 'info') {
+      // Create toast notification
+      const toast = document.createElement('div');
+      toast.className = `library-toast toast-${type}`;
+      toast.textContent = message;
+      toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#10b981' : type === 'info' ? '#3b82f6' : '#6b7280'};
+        color: white;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        z-index: 100000;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      `;
+      
+      document.body.appendChild(toast);
+      
+      // Animate in
+      setTimeout(() => {
+        toast.style.transform = 'translateX(0)';
+      }, 100);
+      
+      // Animate out and remove
+      setTimeout(() => {
+        toast.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+          if (toast.parentNode) {
+            document.body.removeChild(toast);
+          }
+        }, 300);
+      }, 3000);
+    }
   }
 
   // Initialize the enhanced UI
@@ -833,6 +1171,11 @@
   window.injectProcessButton = () => glossifyUI.injectModernFAB();
   window.injectSidebar = () => glossifyUI.injectModernSidebar();
   window.onProcessClicked = () => glossifyUI.onAnalyzeClicked();
+  
+  // Library global functions
+  window.toggleTermSave = (buttonEl, termText) => glossifyUI.toggleTermSave(buttonEl, termText);
+  window.jumpToVideoTime = (videoUrl, seconds) => glossifyUI.jumpToVideoTime(videoUrl, seconds);
+  window.removeTermFromLibrary = (termText) => glossifyUI.removeTermFromLibrary(termText);
   
   // Debug function to reset onboarding for testing
   window.resetOnboarding = () => {

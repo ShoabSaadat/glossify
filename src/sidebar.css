@@ -261,6 +261,65 @@
   transform: scale(1.1);
 }
 
+/* Library Button */
+.btn-library {
+  position: relative;
+}
+
+.library-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: var(--pistachio-500);
+  color: white;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 16px;
+  text-align: center;
+  animation: libraryBadgePulse 0.3s ease;
+}
+
+@keyframes libraryBadgePulse {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Save Heart Button on Term Cards */
+.term-save-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  opacity: 0.6;
+}
+
+.term-save-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  background: rgba(132, 204, 22, 0.1);
+}
+
+.term-save-btn.saved {
+  opacity: 1;
+  color: #e11d48;
+  animation: heartPulse 0.4s ease;
+}
+
+@keyframes heartPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
 /* Progress Bar */
 .progress-container {
   margin-top: 16px;
@@ -968,4 +1027,223 @@
 .onboarding-skip:hover {
   background: var(--gray-100);
   color: var(--gray-700);
+}
+
+/* Personal Library Styles */
+.library-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.library-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--gray-200);
+  background: linear-gradient(135deg, rgba(132, 204, 22, 0.05), rgba(101, 163, 13, 0.05));
+}
+
+.library-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.library-icon {
+  font-size: 24px;
+}
+
+.library-title h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.library-stats {
+  font-size: 14px;
+  color: var(--gray-500);
+  background: var(--gray-100);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.library-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.library-search-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.library-search-input {
+  width: 100%;
+  padding: 10px 14px 10px 36px;
+  border: 2px solid var(--gray-200);
+  border-radius: 10px;
+  font-size: 14px;
+  background: white;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.library-search-input:focus {
+  border-color: var(--pistachio-500);
+  box-shadow: 0 0 0 3px rgba(132, 204, 22, 0.1);
+}
+
+.btn-small {
+  padding: 8px 12px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Library Empty State */
+.library-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  text-align: center;
+  flex: 1;
+}
+
+.library-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.7;
+}
+
+.library-empty-state h3 {
+  font-size: 18px;
+  color: var(--gray-700);
+  margin: 0 0 12px 0;
+  font-weight: 600;
+}
+
+.library-empty-state p {
+  color: var(--gray-500);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 280px;
+}
+
+/* Library Terms List */
+.library-terms-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.library-term-card {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  border-left: 4px solid var(--pistachio-500);
+}
+
+.library-term-card:hover {
+  border-color: var(--pistachio-600);
+  box-shadow: 0 4px 12px rgba(132, 204, 22, 0.15);
+  transform: translateY(-2px);
+}
+
+.library-term-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.library-term-title {
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--gray-800);
+  margin: 0;
+  flex: 1;
+}
+
+.library-term-actions {
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.library-term-card:hover .library-term-actions {
+  opacity: 1;
+}
+
+.library-action-btn {
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.library-action-btn:hover {
+  background: var(--gray-100);
+  transform: scale(1.1);
+}
+
+.library-remove-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.library-term-meaning {
+  color: var(--gray-600);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.library-term-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--gray-500);
+  flex-wrap: wrap;
+}
+
+.library-term-source {
+  background: var(--gray-100);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.library-term-timestamp {
+  background: var(--pistachio-100);
+  color: var(--pistachio-700);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.library-term-timestamp:hover {
+  background: var(--pistachio-200);
+}
+
+.library-term-saved-date {
+  color: var(--gray-400);
 }

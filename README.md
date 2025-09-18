@@ -40,6 +40,13 @@ Smart Brain (formerly YouTube Timestamped Glossary Extension) uses OpenAI's GPT-
 - **Floating Action Button**: Modern FAB design with sparkle effects
 - **Keyboard Accessibility**: Full keyboard navigation support
 
+### 📚 Personal Library System
+- **Save Terms**: Heart button (🤍→❤️) on every term card for personal collection
+- **Smart Library**: Beautiful library view with search, export, and management
+- **Cross-Video Navigation**: Jump to original timestamps from saved terms
+- **Library Badge**: Shows saved term count with pulse animations
+- **Export Functionality**: Download library as structured JSON file
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -83,8 +90,10 @@ Smart Brain (formerly YouTube Timestamped Glossary Extension) uses OpenAI's GPT-
    - Click the floating "Open Glossify" button or use the green "Glossify It!" button
    - Enjoy witty quotes while AI analyzes the transcript (20-50 terms)
    - Browse terms with enhanced typography and resizable interface
+   - **Save terms** by clicking the heart button (🤍→❤️) on interesting terms
    - Click timestamps to jump to video moments
    - Use "Start Over" button to analyze a new video
+   - Access your **Personal Library** via the 📚 button to review saved terms
 
 ## 🏗️ Technical Architecture
 
@@ -196,8 +205,17 @@ Each glossary entry follows this structure:
 ### Term Cards
 - **Enhanced Design**: Increased font sizes (16px base, 18px titles)
 - **Better Contrast**: Improved term visibility and highlighting
+- **Save Functionality**: Heart button (🤍→❤️) for personal library collection
 - **Interaction**: Hover effects and click feedback
 - **Responsive**: Adapts to different sidebar widths
+
+### Personal Library Interface
+- **Library Button**: 📚 icon with notification badge showing saved count
+- **Beautiful Library View**: Professional cards with video source, timestamps, save dates
+- **Smart Search**: Filter saved terms by name or definition instantly
+- **Export System**: Download collection as structured JSON file
+- **Cross-Video Navigation**: Jump to original video moments from any saved term
+- **Management Actions**: Remove terms with hover actions and confirmation
 
 ## 🔧 Development
 
@@ -287,6 +305,9 @@ resetOnboarding()
 // Manually show onboarding
 showOnboarding()
 
+// Check library state
+console.log("Saved terms:", glossifyUI.savedTerms.length)
+
 // Check extension state
 console.log("Smart Brain Extension Debug Mode")
 ```
@@ -375,3 +396,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Enhanced AI Prompting**: Now extracts 20-50 sophisticated terms
 - **Improved Typography**: Inter fonts with increased readability
 - **Smart Button States**: Intuitive "Glossify It!" → "Start Over" flow
+- **Personal Library**: Save terms to collection with heart buttons and export functionality
+- **Cross-Video Navigation**: Jump to saved term timestamps across different videos
